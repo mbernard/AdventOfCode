@@ -29,7 +29,6 @@ let solve2 =
 [<Fact>]
 let ``Test solve2`` () =
     solve2
-    |> printf "%A"
 
 [<Theory>]
 [<InlineData(14, 2)>]
