@@ -1,6 +1,6 @@
 
-open _01
+open _02
 
 module Program = let [<EntryPoint>] main _ = 
-    solve2
+    solve1
     0

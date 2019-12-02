@@ -10,7 +10,9 @@
 
   <ItemGroup>
     <Compile Include="Common.fs" />
+    <Compile Include="02.fs" />
     <Compile Include="01.fs" />
+    <Content Include="Data\02.txt" />
     <Content Include="Data\01.txt" />
     <Compile Include="Program.fs" />
   </ItemGroup>
