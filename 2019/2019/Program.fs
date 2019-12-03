@@ -1,6 +1,6 @@
-
 open _02
-
 module Program = let [<EntryPoint>] main _ = 
-    solve1
+    solve2 19690720 
+    |> printf "%A"
+    
     0
