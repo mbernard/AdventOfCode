@@ -4,12 +4,12 @@ open Common
 
 let parse = parseFirstLine (splitBy "," asIntArray) "../../../Data/02.txt"
 
-let replace (x,y) (xs:int[]) =
+let replace (x, y) (xs: int []) =
     xs.[1] <- x
     xs.[2] <- y
     xs
 
-let apply (xs: int[]) read1 read2 write f =
+let apply (xs: int []) read1 read2 write f =
     xs.[write] <- (f xs.[read1] xs.[read2])
     xs
 
@@ -17,16 +17,15 @@ let getFunc i xs =
     let sub = Array.sub xs i 4
     apply xs sub.[1] sub.[2] sub.[3]
 
-let rec readNextInstruction i (xs: int[]) =
+let rec readNextInstruction i (xs: int []) =
     match xs.[i] with
-        | 1 -> 
-            getFunc i xs (+)
-            |> readNextInstruction (i+4)
-        | 2 -> 
-            getFunc i xs (*)
-            |> readNextInstruction (i+4)
-        | 99 -> xs        
-        | x -> x |> sprintf "Unknown OpCode %i" |> failwith
+    | 1 -> getFunc i xs (+) |> readNextInstruction (i + 4)
+    | 2 -> getFunc i xs (*) |> readNextInstruction (i + 4)
+    | 99 -> xs
+    | x ->
+        x
+        |> sprintf "Unknown OpCode %i"
+        |> failwith
 
 
 let solve x =
@@ -42,10 +41,10 @@ let solve2 solution =
     let rec getSolution x xs =
         xs
         |> List.item x
-        |> solve 
+        |> solve
         |> function
-            | y when y = solution -> List.item x xs
-            | _ -> getSolution (x+1) xs
-    
-    List.allPairs [0..99] [0..99]
-    |> getSolution 0
+        | y when y = solution -> List.item x xs
+        | _ -> getSolution (x + 1) xs
+
+    List.allPairs [ 0 .. 99 ] [ 0 .. 99 ] |> getSolution 0
+ 

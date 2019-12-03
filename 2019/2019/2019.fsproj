@@ -14,6 +14,7 @@
     <Compile Include="Solutions\01.fs" />
     <Content Include="Data\02.txt" />
     <Content Include="Data\01.txt" />
+    <Compile Include="Tests\Tests01.fs" />
     <Compile Include="Tests\Tests02.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
