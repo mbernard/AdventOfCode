@@ -73,47 +73,43 @@ let solve path size =
     |> getIntersections (Array2D.create size size -1) (size / 2, size /2)
     |> distanceFromClosest
 
-let wireDistance (map:int[,], (x,y), steps, res) instruction  =
+let addIf intersections x y i steps=
+    intersections
+    |> Map.tryFind (x, y)
+    |> function
+        | Some z when z < steps + i -> Map.add (x, y) z intersections
+        | None -> Map.add (x, y) (steps + i) intersections
+        | _ -> intersections
+
+let wireDistance (map:int[,], (x,y), steps, intersections) instruction  =
     let (x2,y2) = nextPoint (x, y) instruction.Number instruction.Direction
-    let mutable mRes = res
+    let mutable mRes = intersections
     match instruction.Direction with
     | Up -> 
         for i in [0 .. instruction.Number] do
-            if map.[x, y + i] = -2 then 
-                map.[x, y + i] <- -3
-                mRes <- (steps + i)::res
+            if map.[x, y + i] = -2 then mRes <- addIf mRes x (y+i) i steps
     | Down -> 
         for i in [0 .. instruction.Number] do
-            if map.[x, y - i] = -2 then 
-                map.[x, y - i] <- -3
-                mRes <- (steps + i)::res
+            if map.[x, y - i] = -2 then mRes <- addIf mRes x (y-i) i steps
     | Right -> 
         for i in [0 .. instruction.Number] do
-            if map.[x + i,y] = -2 then
-                map.[x + i,y] <- -3
-                mRes <- (steps + i)::res
+            if map.[x + i,y] = -2 then mRes <- addIf mRes (x+i) y i steps
     | Left -> 
         for i in [0 .. instruction.Number] do
-            if map.[x-i,y] = -2 then 
-                map.[x-i,y] <- -3
-                mRes <- (steps + i)::res
+            if map.[x-i,y] = -2 then mRes <- addIf mRes (x-i) y i steps
     (map, (x2,y2), steps + instruction.Number, mRes)
     
-let wiresDistance map sp (lineId, instructions) = 
-    let _, _, _, x = instructions |> Seq.fold wireDistance (map, sp, 0, [])
+let wiresDistance map sp (lineId, instructions) intersections = 
+    let _, _, _, x = instructions |> Seq.fold wireDistance (map, sp, 0, intersections)
     x
 
 let getShorterWireLength (sp, intersections, map, lines) =
-    let l1 = wiresDistance (Array2D.copy map) sp (Seq.item 0 lines) |> Seq.except [0]
-    let l2 = wiresDistance map sp (Seq.item 1 lines) |> Seq.except [0]
-    
-    let sum = 
-        Seq.allPairs l1 l2
-        |> Seq.map (fun x -> fst x + snd x)
-        |> Seq.sort
-        |> Seq.toList
-
-    sum
+    let l1 = wiresDistance map sp (Seq.item 0 lines) Map.empty |> Map.toList |> List.sortBy fst |> List.map snd
+    let l2 = wiresDistance map sp (Seq.item 1 lines) Map.empty |> Map.toList |> List.sortBy fst |> List.map snd
+   
+    List.zip l1 l2
+    |> Seq.map (fun x -> fst x + snd x)
+    |> Seq.except [0]
     |> Seq.min
 
 let solve2 path size = 
@@ -128,7 +124,7 @@ open Xunit
 [<InlineData(30,"../../../Data/03_test1.txt",20)>]
 [<InlineData(610,"../../../Data/03_test2.txt",500)>]
 [<InlineData(410,"../../../Data/03_test3.txt",500)>]
-[<InlineData(0,"../../../Data/03.txt",30_000)>]
+[<InlineData(27306,"../../../Data/03.txt",30_000)>]
 let ``solve 2`` expected path size =
     let actual = solve2 path size
     Assert.Equal(expected, actual)
