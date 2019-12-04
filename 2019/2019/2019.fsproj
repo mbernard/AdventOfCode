@@ -10,10 +10,16 @@
 
   <ItemGroup>
     <Compile Include="Common.fs" />
+    <Compile Include="Solutions\03.fs" />
     <Compile Include="Solutions\02.fs" />
     <Compile Include="Solutions\01.fs" />
+    <Content Include="Data\03_test3.txt" />
+    <Content Include="Data\03_test2.txt" />
+    <Content Include="Data\03_test1.txt" />
+    <Content Include="Data\03.txt" />
     <Content Include="Data\02.txt" />
     <Content Include="Data\01.txt" />
+    <Compile Include="Tests\Tests03.fs" />
     <Compile Include="Tests\Tests01.fs" />
     <Compile Include="Tests\Tests02.fs" />
     <Compile Include="Program.fs" />
