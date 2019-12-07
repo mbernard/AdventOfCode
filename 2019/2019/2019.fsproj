@@ -10,12 +10,14 @@
 
   <ItemGroup>
     <Compile Include="Common.fs" />
-    <Compile Include="Solutions\06.fs" />
-    <Compile Include="Solutions\05.fs" />
-    <Compile Include="Solutions\04.fs" />
-    <Compile Include="Solutions\03.fs" />
-    <Compile Include="Solutions\02.fs" />
     <Compile Include="Solutions\01.fs" />
+    <Compile Include="Solutions\02.fs" />
+    <Compile Include="Solutions\03.fs" />
+    <Compile Include="Solutions\04.fs" />
+    <Compile Include="Solutions\05.fs" />
+    <Compile Include="Solutions\06.fs" />
+    <Compile Include="Solutions\07.fs" />
+    <Content Include="Data\07.txt" />
     <Content Include="Data\06.txt" />
     <Content Include="Data\05.txt" />
     <Content Include="Data\03_test3.txt" />
@@ -31,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FSharpx.Collections" Version="2.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
