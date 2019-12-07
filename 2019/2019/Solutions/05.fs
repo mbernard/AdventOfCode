@@ -53,15 +53,26 @@ let rec readNextInstruction i input (xs: int []) =
 
             readNextInstruction (i + 4) input xs
         | 3 -> 
-            let index = getValue (instruction.Modes |> Array.head , xs.[i+1]) xs
-            xs.[index] <- input
-
+            xs.[xs.[i+1]] <- input
             readNextInstruction (i + 2) input xs
         | 4-> 
-            xs.[i+1..i+1]
-            |> Array.zip instruction.Modes
-            |> (fun p -> p |> Array.map (fun x -> getValue x xs))
-            |> (fun x -> readNextInstruction (i + 2) x.[0] xs)
+            let mode = instruction.Modes |> Array.head
+            let value = getValue (mode, xs.[i+1]) xs
+            readNextInstruction (i + 2) value xs
+        //| 5 ->
+        //    if xs.[i+1] <> 0 
+        //    then readNextInstruction xs.[i+2] input xs
+        //    else readNextInstruction (i + 3) input xs
+        //| 6 ->
+        //    if xs.[i+1] = 0 
+        //    then readNextInstruction xs.[i+2] input xs
+        //    else readNextInstruction (i + 3) input xs
+        //| 7 -> 
+        //    xs.[i+3] <- if xs.[i+1] < xs.[i+2] then 1 else 0
+        //    readNextInstruction (i+4) input xs
+        //| 8 -> 
+        //    xs.[i+3] <- if xs.[i+1] = xs.[i+2] then 1 else 0
+        //    readNextInstruction (i+4) input xs
         | 99 -> (input, xs)
         | x -> failwithf "Unknown OpCode %i" x)
 
@@ -74,33 +85,45 @@ open Xunit
 let values: obj array seq =
     seq {
         yield [| [| 2; 0; 0; 0; 99 |]
-                 [| 1; 0; 0; 0; 99 |] |]
+                 0
+                 [| 1; 0; 0; 0; 99 |] 
+                 0 |]
         yield [| [| 2; 3; 0; 6; 99 |]
-                 [| 2; 3; 0; 3; 99 |] |]
+                 0
+                 [| 2; 3; 0; 3; 99 |] 
+                 0 |]
         yield [| [| 2; 4; 4; 5; 99; 9801 |]
-                 [| 2; 4; 4; 5; 99; 0 |] |]
+                 0
+                 [| 2; 4; 4; 5; 99; 0 |] 
+                 0 |]
         yield [| [| 30; 1; 1; 4; 2; 5; 6; 0; 99 |]
-                 [| 1; 1; 1; 4; 99; 5; 6; 0; 99 |] |]
+                 0
+                 [| 1; 1; 1; 4; 99; 5; 6; 0; 99 |] 
+                 0 |]
+        yield [| [|1002;4;3;4;99|]
+                 0
+                 [|1002;4;3;4;33|] 
+                 0 |]
+        yield [| [|1101;100;-1;4;99|]
+                 0
+                 [|1101;100;-1;4;0|]
+                 0 |]
+        yield [| [|123;0;4;0;99|]
+                 123
+                 [|3;0;4;0;99|]
+                 123 |]
     }
 
 [<Theory>]
 [<MemberData("values")>]
-let ``read next instruction`` (expected, input) =
-    let actual = 
-        readNextInstruction 0 0 input
-        |> snd
-    Assert.Equal<int>(expected, actual)
+let ``read next instruction`` (expectedArray, expectedOutput, inputArray, input) =
+    let (output, array) = readNextInstruction 0 input inputArray
+    Assert.Equal<int>(expectedArray, array)
+    Assert.Equal(expectedOutput, output)
 
 [<Fact>]
 let ``solve 1`` () =
     let actual = fst solve
-    Assert.Equal(0, actual) 
-
-[<Fact>]
-let ``test 1`` () =
-    let actual = 
-        [|1002;4;3;4;33|]
-        |> readNextInstruction 0 0
-    Assert.Equal(0, fst actual) 
+    Assert.Equal(5044655, actual) 
   
  
