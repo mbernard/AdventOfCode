@@ -59,71 +59,148 @@ let rec readNextInstruction i input (xs: int []) =
             let mode = instruction.Modes |> Array.head
             let value = getValue (mode, xs.[i+1]) xs
             readNextInstruction (i + 2) value xs
-        //| 5 ->
-        //    if xs.[i+1] <> 0 
-        //    then readNextInstruction xs.[i+2] input xs
-        //    else readNextInstruction (i + 3) input xs
-        //| 6 ->
-        //    if xs.[i+1] = 0 
-        //    then readNextInstruction xs.[i+2] input xs
-        //    else readNextInstruction (i + 3) input xs
-        //| 7 -> 
-        //    xs.[i+3] <- if xs.[i+1] < xs.[i+2] then 1 else 0
-        //    readNextInstruction (i+4) input xs
-        //| 8 -> 
-        //    xs.[i+3] <- if xs.[i+1] = xs.[i+2] then 1 else 0
-        //    readNextInstruction (i+4) input xs
+        | 5 ->
+            let param1 = getValue (instruction.Modes.[0], xs.[i+1]) xs
+            let param2 = getValue (instruction.Modes.[1], xs.[i+2]) xs
+            if param1 <> 0
+            then readNextInstruction param2 input xs
+            else readNextInstruction (i + 3) input xs
+        | 6 ->
+            let param1 = getValue (instruction.Modes.[0], xs.[i+1]) xs
+            let param2 = getValue (instruction.Modes.[1], xs.[i+2]) xs
+            if param1 = 0
+            then readNextInstruction param2 input xs
+            else readNextInstruction (i + 3) input xs
+        | 7 -> 
+            let values =
+                xs.[i+1..i+3]
+                |> Array.zip instruction.Modes
+                |> Array.map (fun (x, y) -> getValue (x,y) xs)
+
+            xs.[xs.[i+3]] <- if values.[0] < values.[1] then 1 else 0
+            readNextInstruction (i+4) input xs
+        | 8 -> 
+            let values =
+                xs.[i+1..i+3]
+                |> Array.zip instruction.Modes
+                |> Array.map (fun (x, y) -> getValue (x,y) xs)
+
+            xs.[xs.[i+3]] <- if values.[0] = values.[1] then 1 else 0
+            readNextInstruction (i+4) input xs
         | 99 -> (input, xs)
         | x -> failwithf "Unknown OpCode %i" x)
 
-let solve =
+//let solve =
+//    parse
+//    |> readNextInstruction 0 1
+
+let solve2 =
     parse
-    |> readNextInstruction 0 1
+    |> readNextInstruction 0 5
 
 open Xunit
 
-let values: obj array seq =
+let outputArrayTestCases: obj array seq =
     seq {
         yield [| [| 2; 0; 0; 0; 99 |]
-                 0
                  [| 1; 0; 0; 0; 99 |] 
                  0 |]
         yield [| [| 2; 3; 0; 6; 99 |]
-                 0
                  [| 2; 3; 0; 3; 99 |] 
                  0 |]
         yield [| [| 2; 4; 4; 5; 99; 9801 |]
-                 0
                  [| 2; 4; 4; 5; 99; 0 |] 
                  0 |]
         yield [| [| 30; 1; 1; 4; 2; 5; 6; 0; 99 |]
-                 0
                  [| 1; 1; 1; 4; 99; 5; 6; 0; 99 |] 
                  0 |]
         yield [| [|1002;4;3;4;99|]
-                 0
                  [|1002;4;3;4;33|] 
                  0 |]
         yield [| [|1101;100;-1;4;99|]
-                 0
                  [|1101;100;-1;4;0|]
                  0 |]
-        yield [| [|123;0;4;0;99|]
-                 123
+    }
+
+let outputTestCases: obj array seq =
+    seq {
+        yield [| 123
                  [|3;0;4;0;99|]
                  123 |]
+        // equal to 8 or not
+        yield [| 1
+                 [|3;9;8;9;10;9;4;9;99;-1;8|]
+                 8 |]
+        yield [| 0
+                 [|3;9;8;9;10;9;4;9;99;-1;8|]
+                 5 |]
+        // less than 8 or not
+        yield [| 1
+                 [|3;9;7;9;10;9;4;9;99;-1;8|]
+                 4 |]
+        yield [| 0
+                 [|3;9;7;9;10;9;4;9;99;-1;8|]
+                 8 |]
+        // equal to 8 or not immediate
+        yield [| 1
+                 [|3;3;1108;-1;8;3;4;3;99|]
+                 8 |]
+        yield [| 0
+                 [|3;3;1108;-1;8;3;4;3;99|]
+                 5 |]
+        // less than 8 or not immediate
+        yield [| 1
+                 [|3;3;1107;-1;8;3;4;3;99|]
+                 4 |]
+        yield [| 0
+                 [|3;3;1107;-1;8;3;4;3;99|]
+                 8 |]
+        // jmp test if input is zero
+        yield [| 0
+                 [|3;12;6;12;15;1;13;14;13;4;13;99;-1;0;1;9|]
+                 0 |]
+        yield [| 0
+                 [|3;3;1105;-1;9;1101;0;0;12;4;12;99;1|]
+                 0 |]
+        // jmp test if input is non-zero
+        yield [| 1
+                 [|3;12;6;12;15;1;13;14;13;4;13;99;-1;0;1;9|]
+                 5 |]
+        yield [| 1
+                 [|3;3;1105;-1;9;1101;0;0;12;4;12;99;1|]
+                 5 |]
+        // full example
+        yield [| 999
+                 [|3;21;1008;21;8;20;1005;20;22;107;8;21;20;1006;20;31;1106;0;36;98;0;0;1002;21;125;20;4;20;1105;1;46;104;999;1105;1;46;1101;1000;1;20;4;20;1105;1;46;98;99|]
+                 5 |]
+        yield [| 1000
+                 [|3;21;1008;21;8;20;1005;20;22;107;8;21;20;1006;20;31;1106;0;36;98;0;0;1002;21;125;20;4;20;1105;1;46;104;999;1105;1;46;1101;1000;1;20;4;20;1105;1;46;98;99|]
+                 8 |]
+        yield [| 1001
+                 [|3;21;1008;21;8;20;1005;20;22;107;8;21;20;1006;20;31;1106;0;36;98;0;0;1002;21;125;20;4;20;1105;1;46;104;999;1105;1;46;1101;1000;1;20;4;20;1105;1;46;98;99|]
+                 12 |]
     }
 
 [<Theory>]
-[<MemberData("values")>]
-let ``read next instruction`` (expectedArray, expectedOutput, inputArray, input) =
-    let (output, array) = readNextInstruction 0 input inputArray
-    Assert.Equal<int>(expectedArray, array)
+[<MemberData("outputTestCases")>]
+let ``output test cases`` (expectedOutput, inputArray, input) =
+    let output = readNextInstruction 0 input inputArray |> fst
     Assert.Equal(expectedOutput, output)
 
+[<Theory>]
+[<MemberData("outputArrayTestCases")>]
+let ``output array test cases`` (expectedArray, inputArray, input) =
+    let actualArray = readNextInstruction 0 input inputArray |> snd
+    Assert.Equal<int>(expectedArray, actualArray)
+
+//[<Fact>]
+//let ``solve 1`` () =
+//    let actual = fst solve
+//    Assert.Equal(5044655, actual) 
+
 [<Fact>]
-let ``solve 1`` () =
-    let actual = fst solve
-    Assert.Equal(5044655, actual) 
+let ``solve 2`` () =
+    let actual = fst solve2
+    Assert.Equal(7408802, actual) 
   
  
