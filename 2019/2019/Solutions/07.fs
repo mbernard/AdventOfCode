@@ -51,14 +51,15 @@ let rec outerProduct =
 // Generates all n-element combination from a list L
 let getPermsWithRep2 n L = List.replicate n L |> outerProduct
 
+// Solve 1
 let execute s x =
-    { x with Input = x.Input |> Queue.conj s}
-    |> readNextInstruction 
+    { x with Input = x.Input |> Queue.conj s }
+    |> execute
     |> (fun y -> y.Output |> Queue.head)
 
 let runSeq program seq =
     seq
-    |> Seq.map (fun x -> Computer.initialize program (Queue.ofList [x]))
+    |> Seq.map (fun x -> Computer.initialize program (Queue.ofList [ x ]))
     |> Seq.fold execute 0
 
 let solve program =
@@ -66,16 +67,33 @@ let solve program =
     |> Seq.map (runSeq program)
     |> Seq.max
 
-let rec runAmp amp =
-    ()
+// Solve 2
+
+let run s x =
+    let o =
+        match s with
+        | Some y -> { x with Input = x.Input |> Queue.conj y }
+        | None -> x
+        |> Computer.execute
+        |> Computer.tryReadFromOutput
+    o 
+
+let rec runAmps x amps =
+    amps
+    |> List.mapFold run x
+    |> (fun (clist, res) ->
+        if List.forall (fun z -> z.State = Done) clist
+        then clist |> List.last |> (fun x -> x.LastSignal)
+        else runAmps res clist)
 
 let initializeAmps program sequence =
     sequence
-    |> List.map (fun x -> Computer.initialize program (Queue.ofList [x]))
+    |> List.map (fun x -> Computer.initialize (Array.append program [|x|]) (Queue.ofList [ x ]))
+    |> runAmps (Some 0)
 
 let solve2 program =
     getPerms2 5 [ 5 .. 9 ]
-    |> Seq.map (runSeq program)
+    |> Seq.map (initializeAmps program)
     |> Seq.max
 
 open Xunit
@@ -83,7 +101,7 @@ open Xunit
 let testCases2: obj array seq =
     seq {
         yield [| [| 3; 26; 1001; 26; -4; 26; 3; 27; 1002; 27; 2; 27; 1; 27; 26; 27; 4; 27; 1001; 28; -1; 28; 1005; 28; 6; 99; 0; 0; 5 |]
-                 [| 9; 8; 7; 6; 5 |]
+                 [ 9; 8; 7; 6; 5 ]
                  139629729 |]
         yield [| [| 3
                     52
@@ -142,14 +160,23 @@ let testCases2: obj array seq =
                     0
                     0
                     10 |]
-                 [| 9; 7; 8; 5; 6 |]
+                 [ 9; 7; 8; 5; 6 ]
                  18216 |]
     }
+
+[<Fact>]
+let ``Test solve 2`` () =
+    let actual =
+        "../../../Data/07.txt"
+        |> parseFirstLine (splitBy "," asIntArray)
+        |> solve2
+    Assert.Equal(19384820, actual)
+
 
 [<Theory>]
 [<MemberData("testCases2")>]
 let ``solve2 test`` program x expected =
-    let actual = solve2 program
+    let actual = initializeAmps program x
     Assert.Equal(expected, actual)
 
 let testCases: obj array seq =

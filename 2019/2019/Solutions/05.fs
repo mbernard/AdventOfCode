@@ -14,7 +14,7 @@ let parse = parseFirstLine (splitBy "," asIntArray) "../../../Data/05.txt"
 let solve2 =
     (Queue.ofList [5])
     |> Computer.initialize parse
-    |> readNextInstruction
+    |> execute
 
 open Xunit
 
@@ -105,7 +105,7 @@ let ``output test cases`` (expectedOutput, program, input) =
     let c = 
         Queue.ofList [input]
         |> Computer.initialize program
-        |> readNextInstruction
+        |> execute
     let actual = c.Output |> Queue.head
     Assert.Equal(expectedOutput, actual)
 
@@ -115,7 +115,7 @@ let ``output array test cases`` (expectedArray, program, input) =
     let c = 
         Queue.ofList [input]
         |> Computer.initialize program
-        |> readNextInstruction
+        |> execute
 
     let actualArray = c.Memory
     Assert.Equal<int>(expectedArray, actualArray)
