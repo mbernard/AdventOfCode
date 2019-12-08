@@ -2,103 +2,19 @@
 
 open Common
 open FSharpx.Collections
-
-type Mode =
-    | Position
-    | Immediate
-
-type Instruction = { OpCode : int ; Modes: Mode[]}
+open Computer
 
 let parse = parseFirstLine (splitBy "," asIntArray) "../../../Data/05.txt"
-let parseMode  = 
-    function
-    | 0 -> Position
-    | 1 -> Immediate
-    | x -> failwithf "%i is an invalid mode" x
-    
-let getValue (mode,(x:int)) (xs: int []) =
-    match mode with
-    | Position -> xs.[x]
-    | Immediate -> x
 
-let parseInstruction x =
-    let (modes, opCodeDigits) = 
-        (sprintf "%05i" x).ToCharArray()
-        |> Array.splitAt 3
-    
-    let opCode = 
-        opCodeDigits
-        |> Array.map string
-        |> String.concat ""  
-        |> int
-
-    { OpCode =  opCode ; Modes = modes |> Array.map (string >> int >> parseMode) |> Array.rev }
-    
-let rec readNextInstruction i (input:Queue<int>) (output:Queue<int>) (xs: int []) =
-    getValue (Position,i) xs
-    |> parseInstruction
-    |> (fun instruction -> 
-        match instruction.OpCode with
-        | 1 ->
-            xs.[i+1..i+3]
-            |> Array.zip instruction.Modes
-            |> (fun p -> xs.[snd p.[2]] <- getValue p.[0] xs + getValue p.[1] xs)
-            |> ignore
-
-            readNextInstruction (i + 4) input output xs
-        | 2 -> 
-            xs.[i+1..i+3]
-            |> Array.zip instruction.Modes
-            |> (fun p -> xs.[snd p.[2]] <- getValue p.[0] xs *  getValue p.[1] xs)
-            |> ignore
-
-            readNextInstruction (i + 4) input output xs
-        | 3 -> 
-            let (v, rest) = input |> Queue.uncons
-            xs.[xs.[i+1]] <- v
-            readNextInstruction (i + 2) rest output xs
-        | 4-> 
-            let mode = instruction.Modes |> Array.head
-            let value = getValue (mode, xs.[i+1]) xs
-            readNextInstruction (i + 2) input (output |> Queue.conj value) xs
-        | 5 ->
-            let param1 = getValue (instruction.Modes.[0], xs.[i+1]) xs
-            let param2 = getValue (instruction.Modes.[1], xs.[i+2]) xs
-            if param1 <> 0
-            then readNextInstruction param2 input output xs
-            else readNextInstruction (i + 3) input output xs
-        | 6 ->
-            let param1 = getValue (instruction.Modes.[0], xs.[i+1]) xs
-            let param2 = getValue (instruction.Modes.[1], xs.[i+2]) xs
-            if param1 = 0
-            then readNextInstruction param2 input output xs
-            else readNextInstruction (i + 3) input output xs
-        | 7 -> 
-            let values =
-                xs.[i+1..i+3]
-                |> Array.zip instruction.Modes
-                |> Array.map (fun (x, y) -> getValue (x,y) xs)
-
-            xs.[xs.[i+3]] <- if values.[0] < values.[1] then 1 else 0
-            readNextInstruction (i+4) input output xs
-        | 8 -> 
-            let values =
-                xs.[i+1..i+3]
-                |> Array.zip instruction.Modes
-                |> Array.map (fun (x, y) -> getValue (x,y) xs)
-
-            xs.[xs.[i+3]] <- if values.[0] = values.[1] then 1 else 0
-            readNextInstruction (i+4) input output xs
-        | 99 -> (output, xs)
-        | x -> failwithf "Unknown OpCode %i" x)
 
 //let solve =
 //    parse
 //    |> readNextInstruction 0 1
 
 let solve2 =
-    parse
-    |> readNextInstruction 0 (Queue.ofList [5]) Queue.empty
+    (Queue.ofList [5])
+    |> Computer.initialize parse
+    |> readNextInstruction
 
 open Xunit
 
@@ -186,15 +102,22 @@ let outputTestCases: obj array seq =
 [<Theory>]
 [<MemberData("outputTestCases")>]
 let ``output test cases`` (expectedOutput, program, input) =
-    let inputq = Queue.ofList [input]
-    let output = readNextInstruction 0 inputq Queue.empty program |> fst |> Queue.toSeq |> Seq.head
-    Assert.Equal(expectedOutput, output)
+    let c = 
+        Queue.ofList [input]
+        |> Computer.initialize program
+        |> readNextInstruction
+    let actual = c.Output |> Queue.head
+    Assert.Equal(expectedOutput, actual)
 
 [<Theory>]
 [<MemberData("outputArrayTestCases")>]
 let ``output array test cases`` (expectedArray, program, input) =
-    let inputq = Queue.ofList [input]
-    let actualArray = readNextInstruction 0 inputq Queue.empty program |> snd
+    let c = 
+        Queue.ofList [input]
+        |> Computer.initialize program
+        |> readNextInstruction
+
+    let actualArray = c.Memory
     Assert.Equal<int>(expectedArray, actualArray)
 
 //[<Fact>]
@@ -204,7 +127,7 @@ let ``output array test cases`` (expectedArray, program, input) =
 
 [<Fact>]
 let ``solve 2`` () =
-    let actual = fst solve2 |> Queue.toSeq |> Seq.head
+    let actual = solve2.Output |> Queue.head
     Assert.Equal(7408802, actual) 
   
  
