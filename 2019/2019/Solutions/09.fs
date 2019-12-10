@@ -1,15 +1,12 @@
 ﻿module _09
 
-open System
 open FSharpx.Collections
 open Common
 open Computer
 
 let solve input program =
-    let c = 
-        Computer.initialize program (Queue.ofList [ input ])
-        |> Computer.executeUntilHalt
-    c
+    Computer.initialize program (Queue.ofList [ input ])
+    |> Computer.executeUntilHalt
     |> Computer.tryReadFromOutput
     |> snd
     |> Option.defaultValue 0L
@@ -17,12 +14,20 @@ let solve input program =
 open Xunit
 
 [<Fact>]
+let ``Test solve 2`` () =
+    let actual =
+        "../../../Data/09.txt"
+        |> parseFirstLine (splitBy "," asIntArray)
+        |> solve 2L
+    Assert.Equal(46643L, actual)
+
+[<Fact>]
 let ``Test solve 1`` () =
     let actual =
         "../../../Data/09.txt"
         |> parseFirstLine (splitBy "," asIntArray)
         |> solve 1L
-    Assert.Equal(0L, actual)
+    Assert.Equal(2955820355L, actual)
 
 [<Fact>]
 let ``getvalue test`` () =
@@ -30,7 +35,7 @@ let ``getvalue test`` () =
     let c = Computer.initialize program (Queue.ofList [])
     let actual =
         { c with RelativeBase = 50L }
-        |> Computer.getValue (Relative, -7L)
+        |> Computer.getValue (Relative -7L)
     Assert.Equal(43L, actual)
 
 [<Fact>]
@@ -75,3 +80,16 @@ let ``16 digit number`` () =
         |> Option.defaultValue 0L
 
     Assert.Equal(16, actual |> string |> String.length)
+
+[<Fact>]
+let ``large number`` () =
+    let program = [|104L;1125899906842624L;99L|]
+    let c = Computer.initialize64 program (Queue.ofList [])
+    let actual = 
+        c 
+        |> Computer.executeUntilHalt
+        |> Computer.tryReadFromOutput
+        |> snd
+        |> Option.defaultValue 0L
+
+    Assert.Equal(1125899906842624L, actual)

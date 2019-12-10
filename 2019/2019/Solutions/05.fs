@@ -7,9 +7,10 @@ open Computer
 let parse = parseFirstLine (splitBy "," asIntArray) "../../../Data/05.txt"
 
 
-//let solve =
-//    parse
-//    |> readNextInstruction 0 1
+let solve =
+    (Queue.ofList [1L])
+    |> Computer.initialize parse
+    |> executeUntilHalt
 
 let solve2 =
     (Queue.ofList [5L])
@@ -120,10 +121,10 @@ let ``output array test cases`` (expectedArray, program, input) =
     let actualArray = c.Memory |> Map.toArray |> Array.map snd
     Assert.Equal<int64>(expectedArray |> Array.map int64, actualArray)
 
-//[<Fact>]
-//let ``solve 1`` () =
-//    let actual = fst solve
-//    Assert.Equal(5044655, actual) 
+[<Fact>]
+let ``solve 1`` () =
+    let actual = solve.Output |> Queue.ofSeq |> Seq.rev |> Seq.head
+    Assert.Equal(5044655L, actual) 
 
 [<Fact>]
 let ``solve 2`` () =
