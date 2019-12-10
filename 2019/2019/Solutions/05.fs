@@ -12,9 +12,9 @@ let parse = parseFirstLine (splitBy "," asIntArray) "../../../Data/05.txt"
 //    |> readNextInstruction 0 1
 
 let solve2 =
-    (Queue.ofList [5])
+    (Queue.ofList [5L])
     |> Computer.initialize parse
-    |> execute
+    |> executeUntilOutput
 
 open Xunit
 
@@ -103,9 +103,9 @@ let outputTestCases: obj array seq =
 [<MemberData("outputTestCases")>]
 let ``output test cases`` (expectedOutput, program, input) =
     let c = 
-        Queue.ofList [input]
+        Queue.ofList [int64 input]
         |> Computer.initialize program
-        |> execute
+        |> executeUntilOutput
     let actual = c.Output |> Queue.head
     Assert.Equal(expectedOutput, actual)
 
@@ -113,12 +113,12 @@ let ``output test cases`` (expectedOutput, program, input) =
 [<MemberData("outputArrayTestCases")>]
 let ``output array test cases`` (expectedArray, program, input) =
     let c = 
-        Queue.ofList [input]
+        Queue.ofList [int64 input]
         |> Computer.initialize program
-        |> execute
+        |> executeUntilOutput
 
-    let actualArray = c.Memory
-    Assert.Equal<int>(expectedArray, actualArray)
+    let actualArray = c.Memory |> Map.toArray |> Array.map snd
+    Assert.Equal<int64>(expectedArray |> Array.map int64, actualArray)
 
 //[<Fact>]
 //let ``solve 1`` () =
@@ -128,6 +128,6 @@ let ``output array test cases`` (expectedArray, program, input) =
 [<Fact>]
 let ``solve 2`` () =
     let actual = solve2.Output |> Queue.head
-    Assert.Equal(7408802, actual) 
+    Assert.Equal(7408802L, actual) 
   
  

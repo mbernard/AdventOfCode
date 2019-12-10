@@ -5,6 +5,7 @@ open FSharpx.Collections
 type Mode =
     | Position
     | Immediate
+    | Relative
 
 type Instruction =
     { OpCode: int
@@ -15,31 +16,38 @@ type State =
     | Done
 
 type Computer =
-    { ExecutingIndex: int
-      Memory: int array
+    { ExecutingIndex: int64
+      Memory: Map<int64,int64>
       State: State
-      Input: Queue<int>
-      Output: Queue<int>
-      LastSignal: int }
+      Input: Queue<int64>
+      Output: Queue<int64>
+      LastSignal: int64
+      RelativeBase: int64 }
 
 let initialize program input =
-    { ExecutingIndex = 0
-      Memory = program
+    { ExecutingIndex = 0L
+      Memory = program |> Array.mapi (fun i x -> (int64 i, int64 x)) |> Map.ofArray 
       State = Executing
       Input = input
       Output = Queue.empty
-      LastSignal = 0 }
+      LastSignal = 0L
+      RelativeBase = 0L}
 
 let parseMode =
     function
     | 0 -> Position
     | 1 -> Immediate
+    | 2 -> Relative
     | x -> failwithf "%i is an invalid mode" x
 
-let getValue (mode, (x: int)) (xs: int []) =
+let getValue (mode, indexValue:int64) computer =
     match mode with
-    | Position -> xs.[x]
-    | Immediate -> x
+    | Position -> computer.Memory |> Map.tryFind indexValue |> Option.defaultValue 0L
+    | Immediate -> indexValue
+    | Relative -> computer.Memory.[computer.RelativeBase + indexValue]
+
+let setValue key value computer =
+    { computer with Memory = computer.Memory.Add(key, value) }
 
 let parseInstruction x =
     let (modes, opCodeDigits) = (sprintf "%05i" x).ToCharArray() |> Array.splitAt 3
@@ -59,77 +67,90 @@ let parseInstruction x =
                >> parseMode)
           |> Array.rev }
 
+let getParam1 (modes:Mode []) c =
+        getValue (modes.[0], c.Memory.[c.ExecutingIndex + 1L]) c
+
+let getParam2 (modes:Mode []) c =
+    [ 
+        getValue (modes.[0], c.Memory.[c.ExecutingIndex + 1L]) c
+        getValue (modes.[1], c.Memory.[c.ExecutingIndex + 2L]) c
+    ]
+
+let getParam3 (modes:Mode []) c =
+    [ 
+        getValue (modes.[0], c.Memory.[c.ExecutingIndex + 1L]) c
+        getValue (modes.[1], c.Memory.[c.ExecutingIndex + 2L]) c
+        getValue (modes.[2], c.Memory.[c.ExecutingIndex + 3L]) c
+    ]
+
+let advance x c =
+    { c with ExecutingIndex = c.ExecutingIndex + x }
+
 let private readNextInstruction c =
-    getValue (Position, c.ExecutingIndex) c.Memory
+    getValue (Position,c.ExecutingIndex) c
     |> parseInstruction
     |> (fun instruction ->
     match instruction.OpCode with
     | 1 ->
-        c.Memory.[c.ExecutingIndex + 1..c.ExecutingIndex + 3]
-        |> Array.zip instruction.Modes
-        |> (fun p -> c.Memory.[snd p.[2]] <- getValue p.[0] c.Memory + getValue p.[1] c.Memory)
-        |> ignore
-
-        { c with ExecutingIndex = c.ExecutingIndex + 4 }
+        instruction.Modes.[2] <- Immediate
+        let p = getParam3 instruction.Modes c
+        setValue p.[2] (p.[0] + p.[1]) c
+        |> advance 4L
     | 2 ->
-        c.Memory.[c.ExecutingIndex + 1..c.ExecutingIndex + 3]
-        |> Array.zip instruction.Modes
-        |> (fun p -> c.Memory.[snd p.[2]] <- getValue p.[0] c.Memory * getValue p.[1] c.Memory)
-        |> ignore
-
-        { c with ExecutingIndex = c.ExecutingIndex + 4 }
+        instruction.Modes.[2] <- Immediate
+        let p = getParam3 instruction.Modes c
+        setValue p.[2] (p.[0] * p.[1]) c
+        |> advance 4L
     | 3 ->
         let (v, rest) = c.Input |> Queue.uncons
-        c.Memory.[c.Memory.[c.ExecutingIndex + 1]] <- v
-
-        { c with
-              ExecutingIndex = c.ExecutingIndex + 2
-              Input = rest }
+        let p = getParam1 [|Immediate|] c
+        setValue p v c
+        |> (fun x -> { x with Input = rest })
+        |> advance 2L
     | 4 ->
-        let mode = instruction.Modes |> Array.head
-        let value = getValue (mode, c.Memory.[c.ExecutingIndex + 1]) c.Memory
+        let value = getParam1 instruction.Modes c
         { c with
-              ExecutingIndex = c.ExecutingIndex + 2
               Output = (c.Output |> Queue.conj value) 
               LastSignal = value }
+        |> advance 2L
     | 5 ->
-        let param1 = getValue (instruction.Modes.[0], c.Memory.[c.ExecutingIndex + 1]) c.Memory
-        let param2 = getValue (instruction.Modes.[1], c.Memory.[c.ExecutingIndex + 2]) c.Memory
-        if param1 <> 0 then { c with ExecutingIndex = param2 }
-        else { c with ExecutingIndex = c.ExecutingIndex + 3 }
+        let p = getParam2 instruction.Modes c
+        if p.[0] <> 0L then { c with ExecutingIndex = p.[1] }
+        else c |> advance 3L
     | 6 ->
-        let param1 = getValue (instruction.Modes.[0], c.Memory.[c.ExecutingIndex + 1]) c.Memory
-        let param2 = getValue (instruction.Modes.[1], c.Memory.[c.ExecutingIndex + 2]) c.Memory
-        if param1 = 0 then { c with ExecutingIndex = param2 }
-        else { c with ExecutingIndex = c.ExecutingIndex + 3 }
+        let p = getParam2 instruction.Modes c
+        if p.[0] = 0L then { c with ExecutingIndex = p.[1] }
+        else c |> advance 3L
     | 7 ->
-        let values =
-            c.Memory.[c.ExecutingIndex + 1..c.ExecutingIndex + 3]
-            |> Array.zip instruction.Modes
-            |> Array.map (fun (x, y) -> getValue (x, y) c.Memory)
-
-        c.Memory.[c.Memory.[c.ExecutingIndex + 3]] <- if values.[0] < values.[1] then 1
-                                                      else 0
-        { c with ExecutingIndex = c.ExecutingIndex + 4 }
+        instruction.Modes.[2] <- Immediate
+        let p = getParam3 instruction.Modes c
+        let value = if p.[0] < p.[1] then 1L else 0L
+        setValue p.[2] value c
+        |> advance 4L
     | 8 ->
-        let values =
-            c.Memory.[c.ExecutingIndex + 1..c.ExecutingIndex + 3]
-            |> Array.zip instruction.Modes
-            |> Array.map (fun (x, y) -> getValue (x, y) c.Memory)
-
-        c.Memory.[c.Memory.[c.ExecutingIndex + 3]] <- if values.[0] = values.[1] then 1
-                                                      else 0
-        { c with ExecutingIndex = c.ExecutingIndex + 4 }
+        instruction.Modes.[2] <- Immediate
+        let p = getParam3 instruction.Modes c
+        let value = if p.[0] = p.[1] then 1L else 0L
+        setValue p.[2] value c
+        |> advance 4L
+    | 9 -> 
+        let value = getParam1 instruction.Modes c
+        { c with RelativeBase = c.RelativeBase + value; ExecutingIndex = c.ExecutingIndex + 2L}
     | 99 -> { c with State = Done }
     | x -> failwithf "Unknown OpCode %i" x)
 
-let rec execute c =
+let rec executeUntilOutput c =
     if c.Output
        |> Queue.isEmpty
        |> not
        || c.State = Done
     then c
-    else readNextInstruction c |> execute
+    else readNextInstruction c |> executeUntilOutput
+
+let rec executeUntilHalt c =
+    if c.State = Done
+    then c
+    else readNextInstruction c |> executeUntilHalt
 
 let tryReadFromOutput c =
     match Queue.tryUncons c.Output with

@@ -54,13 +54,14 @@ let getPermsWithRep2 n L = List.replicate n L |> outerProduct
 // Solve 1
 let execute s x =
     { x with Input = x.Input |> Queue.conj s }
-    |> execute
+    |> executeUntilOutput
     |> (fun y -> y.Output |> Queue.head)
 
 let runSeq program seq =
     seq
+    |> Seq.map int64
     |> Seq.map (fun x -> Computer.initialize program (Queue.ofList [ x ]))
-    |> Seq.fold execute 0
+    |> Seq.fold execute 0L
 
 let solve program =
     getPerms2 5 [ 0 .. 4 ]
@@ -74,7 +75,7 @@ let run s x =
         match s with
         | Some y -> { x with Input = x.Input |> Queue.conj y }
         | None -> x
-        |> Computer.execute
+        |> Computer.executeUntilOutput
         |> Computer.tryReadFromOutput
     o 
 
@@ -88,8 +89,8 @@ let rec runAmps x amps =
 
 let initializeAmps program sequence =
     sequence
-    |> List.map (fun x -> Computer.initialize (Array.append program [|x|]) (Queue.ofList [ x ]))
-    |> runAmps (Some 0)
+    |> List.map (fun x -> Computer.initialize (Array.append program [|x|]) (Queue.ofList [ int64 x ]))
+    |> runAmps (Some 0L)
 
 let solve2 program =
     getPerms2 5 [ 5 .. 9 ]
@@ -170,7 +171,7 @@ let ``Test solve 2`` () =
         "../../../Data/07.txt"
         |> parseFirstLine (splitBy "," asIntArray)
         |> solve2
-    Assert.Equal(19384820, actual)
+    Assert.Equal(19384820L, actual)
 
 
 [<Theory>]
@@ -198,7 +199,7 @@ let ``Solve 1``() =
         "../../../Data/07.txt"
         |> parseFirstLine (splitBy "," asIntArray)
         |> solve
-    Assert.Equal(17790, actual)
+    Assert.Equal(17790L, actual)
 
 [<Theory>]
 [<MemberData("testCases")>]

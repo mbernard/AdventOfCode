@@ -2,6 +2,8 @@
 
 open _02
 open Xunit
+open Computer 
+open FSharpx.Collections
 
 let values: obj array seq =
     seq {
@@ -18,8 +20,12 @@ let values: obj array seq =
 [<Theory>]
 [<MemberData("values")>]
 let ``read next instruction`` (expected, input) =
-    let actual = readNextInstruction 0 input
-    Assert.Equal<int>(expected, actual)
+    let actual = 
+        Computer.initialize input Queue.empty
+        |> executeUntilHalt
+        |> (fun x -> x.Memory)
+    
+    Assert.Equal<int64>(expected |> Array.map int64, actual |> Map.toArray |> Array.map snd)
 
 [<Fact>]
 let ``Test solve1``() =
