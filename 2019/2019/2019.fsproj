@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Compile Include="Common.fs" />
+    <Compile Include="Solutions\08.fs" />
     <Compile Include="Solutions\01.fs" />
     <Compile Include="Solutions\Computer.fs" />
     <Compile Include="Solutions\02.fs" />
@@ -18,6 +19,7 @@
     <Compile Include="Solutions\05.fs" />
     <Compile Include="Solutions\06.fs" />
     <Compile Include="Solutions\07.fs" />
+    <Content Include="Data\08.txt" />
     <Content Include="Data\07.txt" />
     <Content Include="Data\06.txt" />
     <Content Include="Data\05.txt" />
