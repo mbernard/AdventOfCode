@@ -8,25 +8,6 @@ let getAngle opposite adjacent = Math.Atan(opposite / adjacent)
 let getOppositeSide adjacent angle = Math.Tan(angle) * adjacent
 let isInteger (f:float) = f % 1.0 = 0.0
 
-let isCoord angle (x1,y1) (x:int) =
-    let side = getOppositeSide (x |> float) angle
-    if isInteger side then Some (x + x1, side |> int |> (+) y1) else None
-
-let getPossibleObstacleCoord (x1:int, y1:int) (x2:int, y2:int) =
-    if x1 = x2
-    then 
-        if y1 < y2 then [y1+1..y2-1] else [y1-1 .. -1 .. y2+1]
-        |> List.map (fun y -> (x1, y))
-    else if y1 = y2
-    then 
-        if x1 < x2 then [x1+1..x2-1] else [x1-1 .. -1 .. x2+1]
-        |> List.map (fun x -> (x,y1))
-    else
-        let angle = getAngle (float (y2 - y1)) (float (x2 - x1))
-        [1..abs(x2-x1-1)]
-        |> List.choose (isCoord angle (x1,y1))
-    |> Set.ofList
-
 let getAsteriodOnLine (s,i) (j,c) =
     if c = '#' 
     then (Set.add (j,i) s, i)
@@ -54,22 +35,40 @@ let count (c,xs,x) y =
     let angle = getAngleForPoints x y
     let s = xs |> Set.filter (inBoundaries x y) |> Set.filter (fun e -> e <> x && e <> y)
     if s |> Set.forall (fun e -> areFloatKindaEqual (getAngleForPoints x e) angle |> not)
-    then (c+1,xs,x)
+    then (y::c,xs,x)
     else (c,xs,x)
 
-    //let obs =  
-    //    getPossibleObstacleCoord x y
-    //    |> Set.intersect xs
-    //if Set.isEmpty obs 
-    //then (c+1,xs,x)
-    //else (c,xs,x)
-
 let countDetection xs x =
-    let (count, _, _) =
+    let (detections, _, _) =
         Set.difference xs (Set.singleton x)
-        |> Set.fold count (0,xs,x)
-    (count, x)
+        |> Set.fold count ([],xs,x)
+    (detections, x)
 
+let getQuadrant point =
+    match point with
+    | (x,y) when x >= 0 && y > 0 -> 0
+    | (x,y) when x > 0 && y <= 0 -> 1
+    | (x,y) when x <= 0 && y < 0 -> 2
+    | (x,y) when x < 0 && y >= 0 -> 3
+    | _ -> failwith "unkown coord quadrant"
+
+let getFullAngle station x =
+    let q = getQuadrant x * 90 |> float
+    let a = Math.PI * getAngleForPoints station x / 180.0
+    (a + q, x)
+
+[<Theory>]
+[<InlineData(0,0,1)>]
+[<InlineData(0,1,1)>]
+[<InlineData(1,1,0)>]
+[<InlineData(1,1,-1)>]
+[<InlineData(2,0,-1)>]
+[<InlineData(2,-1,-1)>]
+[<InlineData(3,-1,0)>]
+[<InlineData(3,-1,1)>]
+let ``get quadrant test`` expected x y =
+    let actual = getQuadrant (x,y)
+    Assert.Equal(expected, actual)
 
 let testCases: obj array seq =
     seq {
@@ -87,27 +86,43 @@ let testCases: obj array seq =
 let ``solve 1`` expected file =
     let asteriods = 
         parseEachLine asString file
-        |> Seq.indexed
-        |> Seq.fold getAsteroid Set.empty
+        |> Seq.toArray
+        |> Array.indexed
+        |> Array.fold getAsteroid Set.empty
     
     let counts = 
         asteriods
-        |> Seq.map (countDetection asteriods)
+        |> Set.map (countDetection asteriods)
 
-    let (count, coord) = 
+    let count = 
         counts
-        |> Seq.maxBy fst
+        |> Seq.maxBy (fst >> List.length)
+        |> (fst >> List.length)
     Assert.Equal(expected, count)
 
+let testCases2: obj array seq =
+    seq {
+        yield [| 0; "../../../Data/10.txt" |]
+        }
+
 [<Theory>]
-[<InlineData(1,0,0,6,8)>]
-[<InlineData(1,0,0,-6,-8)>]
-[<InlineData(1,0,0,-6,8)>]
-[<InlineData(1,0,0,6,-8)>]
-[<InlineData(2,1,3,7,11)>]
-[<InlineData(0,1,1,1,2)>]
-[<InlineData(0,1,1,2,1)>]
-[<InlineData(1,1,0,3,4)>]
-let ``get obstacle`` expected x1 y1 x2 y2 =
-    let obs = getPossibleObstacleCoord (x1,y1) (x2,y2)
-    Assert.Equal(expected, obs |> Set.count)
+[<MemberData("testCases2")>]
+let ``solve 2`` expected file =
+    let asteriods = 
+        parseEachLine asString file
+        |> Seq.toArray
+        |> Array.indexed
+        |> Array.fold getAsteroid Set.empty
+    
+    let (detections, station) = 
+        asteriods
+        |> Set.map (countDetection asteriods)
+        |> Seq.maxBy (fst >> List.length)
+    let actual = 
+        detections
+        |> List.map (getFullAngle station)
+        |> List.item 199
+        |> snd
+        |> (fun (x,y) -> x * 100 + y)
+   
+    Assert.Equal(expected, actual)
