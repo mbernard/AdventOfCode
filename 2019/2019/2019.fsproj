@@ -21,6 +21,7 @@
     <Compile Include="Solutions\05.fs" />
     <Compile Include="Solutions\06.fs" />
     <Compile Include="Solutions\07.fs" />
+    <Content Include="Data\10_test6.txt" />
     <Content Include="Data\10.txt" />
     <Content Include="Data\10_test5.txt" />
     <Content Include="Data\10_test4.txt" />

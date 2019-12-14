@@ -46,26 +46,28 @@ let countDetection xs x =
 
 let getQuadrant point =
     match point with
-    | (x,y) when x >= 0 && y > 0 -> 0
-    | (x,y) when x > 0 && y <= 0 -> 1
-    | (x,y) when x <= 0 && y < 0 -> 2
-    | (x,y) when x < 0 && y >= 0 -> 3
+    | (x,y) when x >= 0 && y > 0 -> 2
+    | (x,y) when x > 0 && y <= 0 -> 3
+    | (x,y) when x <= 0 && y < 0 -> 0
+    | (x,y) when x < 0 && y >= 0 -> 1
     | _ -> failwith "unkown coord quadrant"
 
-let getFullAngle station x =
-    let q = getQuadrant x * 90 |> float
-    let a = Math.PI * getAngleForPoints station x / 180.0
-    (a + q, x)
+let getFullAngle (s1,s2) (x1,x2) =
+    //let q = getQuadrant (x1-s1,x2-s2) * 90 |> float
+    let angle = getAngleForPoints (s1,s2) (x1,x2)
+    //let a = 180.0 * angle / Math.PI
+    let a = if x1 < s1 then angle else (angle - 10.0)
+    (a, (x1,x2))
 
 [<Theory>]
-[<InlineData(0,0,1)>]
-[<InlineData(0,1,1)>]
-[<InlineData(1,1,0)>]
-[<InlineData(1,1,-1)>]
-[<InlineData(2,0,-1)>]
-[<InlineData(2,-1,-1)>]
-[<InlineData(3,-1,0)>]
-[<InlineData(3,-1,1)>]
+[<InlineData(2,0,1)>]
+[<InlineData(2,1,1)>]
+[<InlineData(3,1,0)>]
+[<InlineData(3,1,-1)>]
+[<InlineData(0,0,-1)>]
+[<InlineData(0,-1,-1)>]
+[<InlineData(1,-1,0)>]
+[<InlineData(1,-1,1)>]
 let ``get quadrant test`` expected x y =
     let actual = getQuadrant (x,y)
     Assert.Equal(expected, actual)
@@ -102,27 +104,30 @@ let ``solve 1`` expected file =
 
 let testCases2: obj array seq =
     seq {
-        yield [| 0; "../../../Data/10.txt" |]
+        yield [| 802; 11; 13; "../../../Data/10_test5.txt" |]
+        yield [| 829; 26; 36; "../../../Data/10.txt" |]
         }
 
 [<Theory>]
 [<MemberData("testCases2")>]
-let ``solve 2`` expected file =
+let ``solve 2`` expected x y file =
     let asteriods = 
         parseEachLine asString file
         |> Seq.toArray
         |> Array.indexed
         |> Array.fold getAsteroid Set.empty
     
-    let (detections, station) = 
-        asteriods
-        |> Set.map (countDetection asteriods)
-        |> Seq.maxBy (fst >> List.length)
-    let actual = 
+    let station = (x,y)
+    let detections = countDetection asteriods station |> fst
+    let sorted = 
         detections
         |> List.map (getFullAngle station)
+        |> List.sortBy fst
+
+    let actual =
+        sorted
         |> List.item 199
         |> snd
         |> (fun (x,y) -> x * 100 + y)
-   
+    
     Assert.Equal(expected, actual)
