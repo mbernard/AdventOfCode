@@ -87,6 +87,26 @@ let solve program =
     { Direction = Up; Position = 0,0 ; Path = Map.empty; Computer = initialize64 program Queue.empty }
     |> execute
 
+let paintMap map =
+    let minX = map |> Map.keys |> Seq.minBy fst |> fst
+    let maxX = map |> Map.keys |> Seq.maxBy fst |> fst
+    let minY = map |> Map.keys |> Seq.minBy snd |> snd
+    let maxY = map |> Map.keys |> Seq.maxBy snd |> snd
+    for i in [minX..maxX] do
+        for j in [minY..maxY] do
+            map |> Map.tryFind (i,j) |> Option.defaultValue 0
+            |> (fun x -> if x = 0 then printf " " else printf "#")
+        printf "\n"
+    ()
+
+let solve2 =
+    let r =
+        "../../../Data/11.txt"
+        |> parseFirstLine (splitBy "," asInt64Array)
+        |> (fun x -> { Direction = Up; Position = 0,0 ; Path = Map.ofList [((0,0), 1)] ; Computer = initialize64 x Queue.empty })
+        |> execute
+    paintMap r.Path
+
 [<Fact>]
 let ``solve 1`` () =
     let r =
@@ -96,4 +116,4 @@ let ``solve 1`` () =
     let actual =
         r.Path
         |> Map.count
-    Assert.Equal(0, actual)
+    Assert.Equal(2343, actual)
