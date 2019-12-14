@@ -36,6 +36,8 @@ let initialize64 program input =
 let initialize program input =
     initialize64 (program |> Array.map int64)  input
 
+let writeInput x c = { c with Input = Queue.conj x c.Input}
+
 let parseMode =
     function
     | 0 -> Position
@@ -161,3 +163,7 @@ let tryReadFromOutput c =
     match Queue.tryUncons c.Output with
     | Some(i, is) -> { c with Output = is }, Some i
     | None -> c, None
+
+let readOutput c =
+    let i, is = Queue.uncons c.Output
+    i, { c with Output = is }

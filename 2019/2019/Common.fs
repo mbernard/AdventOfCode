@@ -17,6 +17,7 @@ let asString : string -> string = id
 let asInt : string -> int = int
 let asStringArray : string [] -> string [] = Array.map string
 let asIntArray : string [] -> int [] = Array.map int
+let asInt64Array : string [] -> int64 [] = Array.map int64
 let splitBy (c : string) f (str : string) = str.Split([| c |], StringSplitOptions.None) |> f
 let extractInts str = [| for m in Regex.Matches(str, "(-?\d+)") -> int m.Value |]
 let withRegex regex str = [| for m in Regex.Match(str, regex).Groups -> m.Value|] |> Array.tail
