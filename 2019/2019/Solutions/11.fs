@@ -11,13 +11,12 @@ type Direction =
     | Right
     | Left
 
-type Square = { Position: int * int ; Color : int }
-type Robot = { Direction: Direction; Position: int * int; Path: Square list; Computer: Computer }
+//type Square = { Position: int * int ; Color : int }
+type Robot = { Direction: Direction; Position: int * int; Path: Map<int*int, int>; Computer: Computer }
 
 let readColor r =
-    List.tryFindBack (fun (x:Square) -> x.Position = r.Position) r.Path
-    |> Option.defaultValue { Position = r.Position; Color = 0 }
-    |> (fun x -> x.Color)
+    Map.tryFind r.Position r.Path
+    |> Option.defaultValue 0
 
 let turnLeft r = 
     match r.Direction with
@@ -61,7 +60,7 @@ let paint robot =
         |> readOutput
     let p =
         robot.Path
-        |> List.cons { Position = robot.Position ; Color = color |> int }
+        |> Map.add robot.Position (color |> int)
     { robot with Computer = c ; Path = p }
 
 let move robot =
@@ -85,7 +84,7 @@ let rec execute robot =
         |> execute
 
 let solve program =
-    { Direction = Up; Position = 0,0 ; Path = List.empty; Computer = initialize64 program Queue.empty }
+    { Direction = Up; Position = 0,0 ; Path = Map.empty; Computer = initialize64 program Queue.empty }
     |> execute
 
 [<Fact>]
@@ -96,6 +95,5 @@ let ``solve 1`` () =
         |> solve
     let actual =
         r.Path
-        |> List.distinctBy (fun x -> x.Position)
-        |> List.length
+        |> Map.count
     Assert.Equal(0, actual)
