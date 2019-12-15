@@ -24,17 +24,17 @@ type Computer =
       LastSignal: int64
       RelativeBase: int64 }
 
-let initialize64 program input =
+let initialize64 program =
     { ExecutingIndex = 0L
       Memory = program |> Array.mapi (fun i x -> (int64 i, x)) |> Map.ofArray 
       State = Executing
-      Input = input
+      Input = Queue.empty
       Output = Queue.empty
       LastSignal = 0L
       RelativeBase = 0L}
 
-let initialize program input =
-    initialize64 (program |> Array.map int64)  input
+let initialize program =
+    initialize64 (program |> Array.map int64)
 
 let writeInput x c = { c with Input = Queue.conj x c.Input}
 
@@ -161,8 +161,8 @@ let rec executeUntilHalt c =
 
 let tryReadFromOutput c =
     match Queue.tryUncons c.Output with
-    | Some(i, is) -> { c with Output = is }, Some i
-    | None -> c, None
+    | Some(i, is) -> { c with Output = is },Some i
+    | None -> c,None
 
 let readOutput c =
     let i, is = Queue.uncons c.Output

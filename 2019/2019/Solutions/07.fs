@@ -60,7 +60,7 @@ let execute s x =
 let runSeq program seq =
     seq
     |> Seq.map int64
-    |> Seq.map (fun x -> Computer.initialize program (Queue.ofList [ x ]))
+    |> Seq.map (fun x -> Computer.initialize program |> writeInput x )
     |> Seq.fold execute 0L
 
 let solve program =
@@ -89,7 +89,7 @@ let rec runAmps x amps =
 
 let initializeAmps program sequence =
     sequence
-    |> List.map (fun x -> Computer.initialize (Array.append program [|x|]) (Queue.ofList [ int64 x ]))
+    |> List.map (fun x -> Computer.initialize (Array.append program [|x|]) |> writeInput (int64 x))
     |> runAmps (Some 0L)
 
 let solve2 program =

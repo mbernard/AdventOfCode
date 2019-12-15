@@ -11,7 +11,6 @@ type Direction =
     | Right
     | Left
 
-//type Square = { Position: int * int ; Color : int }
 type Robot = { Direction: Direction; Position: int * int; Path: Map<int*int, int>; Computer: Computer }
 
 let readColor r =
@@ -84,7 +83,7 @@ let rec execute robot =
         |> execute
 
 let solve program =
-    { Direction = Up; Position = 0,0 ; Path = Map.empty; Computer = initialize64 program Queue.empty }
+    { Direction = Up; Position = 0,0 ; Path = Map.empty; Computer = initialize64 program }
     |> execute
 
 let paintMap map =
@@ -103,7 +102,7 @@ let solve2 =
     let r =
         "../../../Data/11.txt"
         |> parseFirstLine (splitBy "," asInt64Array)
-        |> (fun x -> { Direction = Up; Position = 0,0 ; Path = Map.ofList [((0,0), 1)] ; Computer = initialize64 x Queue.empty })
+        |> (fun x -> { Direction = Up; Position = 0,0 ; Path = Map.ofList [((0,0), 1)] ; Computer = initialize64 x })
         |> execute
     paintMap r.Path
 

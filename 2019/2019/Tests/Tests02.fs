@@ -21,7 +21,7 @@ let values: obj array seq =
 [<MemberData("values")>]
 let ``read next instruction`` (expected, input) =
     let actual = 
-        Computer.initialize input Queue.empty
+        Computer.initialize input
         |> executeUntilHalt
         |> (fun x -> x.Memory)
     

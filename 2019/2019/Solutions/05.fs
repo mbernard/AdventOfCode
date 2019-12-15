@@ -8,13 +8,13 @@ let parse = parseFirstLine (splitBy "," asIntArray) "../../../Data/05.txt"
 
 
 let solve =
-    (Queue.ofList [1L])
-    |> Computer.initialize parse
+    Computer.initialize parse
+    |> writeInput 1L
     |> executeUntilHalt
 
 let solve2 =
-    (Queue.ofList [5L])
-    |> Computer.initialize parse
+    Computer.initialize parse
+    |> writeInput 5L
     |> executeUntilOutput
 
 open Xunit
@@ -104,8 +104,8 @@ let outputTestCases: obj array seq =
 [<MemberData("outputTestCases")>]
 let ``output test cases`` (expectedOutput, program, input) =
     let c = 
-        Queue.ofList [int64 input]
-        |> Computer.initialize program
+        Computer.initialize program
+        |> writeInput (int64 input)
         |> executeUntilOutput
     let actual = c.Output |> Queue.head
     Assert.Equal(expectedOutput, actual)
@@ -114,8 +114,8 @@ let ``output test cases`` (expectedOutput, program, input) =
 [<MemberData("outputArrayTestCases")>]
 let ``output array test cases`` (expectedArray, program, input) =
     let c = 
-        Queue.ofList [int64 input]
-        |> Computer.initialize program
+        Computer.initialize program
+        |> writeInput (int64 input)
         |> executeUntilOutput
 
     let actualArray = c.Memory |> Map.toArray |> Array.map snd

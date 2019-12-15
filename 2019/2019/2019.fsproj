@@ -10,8 +10,9 @@
 
   <ItemGroup>
     <Compile Include="Common.fs" />
-    <Compile Include="Solutions\12.fs" />
     <Compile Include="Solutions\Computer.fs" />
+    <Compile Include="Solutions\13.fs" />
+    <Compile Include="Solutions\12.fs" />
     <Compile Include="Solutions\11.fs" />
     <Compile Include="Solutions\10.fs" />
     <Compile Include="Solutions\09.fs" />
@@ -23,6 +24,7 @@
     <Compile Include="Solutions\05.fs" />
     <Compile Include="Solutions\06.fs" />
     <Compile Include="Solutions\07.fs" />
+    <Content Include="Data\13.txt" />
     <Content Include="Data\12_test2.txt" />
     <Content Include="Data\12_test1.txt" />
     <Content Include="Data\12.txt" />
