@@ -32,18 +32,18 @@ let applyVelocity m v =
 let applyVelocities vs m =
     let myv =
         vs
-        |> List.filter (fun x -> fst x = m.Name)
-        |> List.map snd
+        |> Array.filter (fun x -> fst x = m.Name)
+        |> Array.map snd
     myv
-    |> List.fold applyVelocity m
+    |> Array.fold applyVelocity m
 
 let updateVelocity moons = 
     let vs =
         moons
-        |> List.allPairs moons
-        |> List.map calculateVelocity
+        |> Array.allPairs moons
+        |> Array.map calculateVelocity
     moons
-    |> List.map (applyVelocities vs)
+    |> Array.map (applyVelocities vs)
 
 let updatePosition m =
     { m with Position = 
@@ -54,7 +54,7 @@ let updatePosition m =
 let execute moons i =
     moons
     |> updateVelocity
-    |> List.map updatePosition
+    |> Array.map updatePosition
 
 let calculateTotalEnergy e m =
     let pot = abs m.Position.X + abs m.Position.Y + abs m.Position.Z
@@ -67,45 +67,48 @@ let getVelY x = x.Velocity.Y
 let getVelZ x = x.Velocity.Z
 
 let rec gcd a b =
-    if b = 0
+    if b = 0L
         then abs a
     else gcd b (a % b)
 
-let lcmSimple a b = a*b/(gcd a b)
-
-let rec lcm = function
-    | [a;b] -> lcmSimple a b
-    | head::tail -> lcmSimple (head) (lcm (tail))
-    | [] -> 1
-
-let stepsToInitialState xs xi x =
-    
+let stepsToInitialState2 xs xi x =
     let rec exec ms i f =
         let ms = execute ms i
-        if List.item xi ms |> f = 0 
+        if f ms.[xi] = f x 
         then i
-        else exec ms (i+1) f
+        else exec ms (i+1L) f
 
-    [getVelX; getVelY; getVelZ]
-    |> List.map (exec xs 1)
+    [|getX; getY; getZ|]
+    |> Array.map (exec xs 1L)
+    |> Array.reduce (fun a b -> a * b / (gcd a b))
+
+let stepsToInitialState xs xi x =
+    let rec exec ms i =
+        let ms = execute ms i
+        if ms.[xi] = x 
+        then i
+        else exec ms (i+1L)
+    exec xs 1L
 
 [<Theory>]
-[<InlineData(2772, "../../../Data/12_test1.txt")>]
+[<InlineData(2772L, "../../../Data/12_test1.txt")>]
 [<InlineData(4686774924L, "../../../Data/12_test2.txt")>]
-[<InlineData(0, "../../../Data/12.txt")>]
+[<InlineData(0L, "../../../Data/12.txt")>]
 let ``solve 2 test`` expected file =
     let moons = 
         file
         |> parseEachLine extractInts
         |> Seq.mapi initialize
-        |> List.ofSeq
-    let steps = 
-        moons
-        |> List.mapi (stepsToInitialState moons)
-        |> List.concat
-        |> lcm
+        |> Array.ofSeq
+    let steps =
 
-    Assert.Equal(expected, steps)
+        moons
+        |> Array.mapi (stepsToInitialState moons)
+    let actual = 
+        steps
+        |> Array.reduce (fun a b -> a * b / (gcd a b))
+
+    Assert.Equal(expected, actual)
 
 [<Theory>]
 [<InlineData(179, 10, "../../../Data/12_test1.txt")>]
@@ -115,11 +118,11 @@ let ``Solve 1`` expected i file =
         file
         |> parseEachLine extractInts
         |> Seq.mapi initialize
-        |> List.ofSeq
+        |> Array.ofSeq
 
     let actual = 
-        [1..i]
-        |> List.fold execute moons
-        |> List.fold calculateTotalEnergy 0
+        [|1..i|]
+        |> Array.fold execute moons
+        |> Array.fold calculateTotalEnergy 0
 
     Assert.Equal(expected, actual)
