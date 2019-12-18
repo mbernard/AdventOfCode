@@ -159,6 +159,11 @@ let rec executeUntilHalt c =
     then c
     else readNextInstruction c |> executeUntilHalt
 
+let rec executeUntilInput c =
+    if c.State = Done || getValue (Position c.ExecutingIndex) c = 3L && Queue.isEmpty c.Input
+    then c
+    else readNextInstruction c |> executeUntilInput
+
 let tryReadFromOutput c =
     match Queue.tryUncons c.Output with
     | Some(i, is) -> { c with Output = is },Some i
