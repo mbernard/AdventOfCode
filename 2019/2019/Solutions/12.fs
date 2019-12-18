@@ -65,22 +65,25 @@ let calculateTotalEnergy e m =
 let getVelX x = x.Velocity.X
 let getVelY x = x.Velocity.Y
 let getVelZ x = x.Velocity.Z
+let getXAxis x = x.Position.X,x.Velocity.X
+let getYAxis x = x.Position.Y,x.Velocity.Y
+let getZAxis x = x.Position.Z,x.Velocity.Z
 
-let rec gcd a b =
-    if b = 0L
-        then abs a
-    else gcd b (a % b)
+let rec gcd x y = if y = 0L then abs x else gcd y (x % y)
 
-let stepsToInitialState2 xs xi x =
-    let rec exec ms i f =
+let lcm x y = x * y / (gcd x y)
+
+let stepsToInitialState2 initialStates f =
+    let initialStateOnAxis = Array.map f initialStates
+    let rec exec ms i  =
         let ms = execute ms i
-        if f ms.[xi] = f x 
+        let state = Array.map f ms
+        if  state = initialStateOnAxis
         then i
-        else exec ms (i+1L) f
+        else exec ms (i+1L)
 
-    [|getX; getY; getZ|]
-    |> Array.map (exec xs 1L)
-    |> Array.reduce (fun a b -> a * b / (gcd a b))
+    exec initialStates 1L
+
 
 let stepsToInitialState xs xi x =
     let rec exec ms i =
@@ -93,7 +96,7 @@ let stepsToInitialState xs xi x =
 [<Theory>]
 [<InlineData(2772L, "../../../Data/12_test1.txt")>]
 [<InlineData(4686774924L, "../../../Data/12_test2.txt")>]
-[<InlineData(0L, "../../../Data/12.txt")>]
+[<InlineData(500903629351944L, "../../../Data/12.txt")>]
 let ``solve 2 test`` expected file =
     let moons = 
         file
@@ -101,12 +104,12 @@ let ``solve 2 test`` expected file =
         |> Seq.mapi initialize
         |> Array.ofSeq
     let steps =
-
-        moons
-        |> Array.mapi (stepsToInitialState moons)
+        [|getXAxis; getYAxis; getZAxis|]
+        |> Array.map (stepsToInitialState2 moons)
+        |> Array.distinct
     let actual = 
         steps
-        |> Array.reduce (fun a b -> a * b / (gcd a b))
+        |> Array.reduce (fun a b -> lcm a b)
 
     Assert.Equal(expected, actual)
 
