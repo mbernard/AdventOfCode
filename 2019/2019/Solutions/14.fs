@@ -4,14 +4,14 @@ open Common
 open Xunit
 open System
 
-type Chemical = { Number : int; Name:string}
+type Chemical = { Number : int64; Name:string}
 type Formula = { Inputs: Chemical []; Output: Chemical}
 
-let setItem k v m = if v = 0 then Map.remove k m else Map.add k v m
-let getItem k m = Map.tryFind k m |> Option.defaultValue 0
+let setItem k v m = if v = 0L then Map.remove k m else Map.add k v m
+let getItem k m = Map.tryFind k m |> Option.defaultValue 0L
 
 type NanoFactory = 
-    { Formulas: Map<string, Formula> ; ToMake: Map<string, int>; LeftOvers: Map<string, int>}
+    { Formulas: Map<string, Formula> ; ToMake: Map<string, int64>; LeftOvers: Map<string, int64>}
     static member Create formulas = { Formulas = formulas; ToMake = Map.empty; LeftOvers = Map.empty}
     static member SetToMake item n nf = { nf with ToMake = setItem item n nf.ToMake }
     static member SetLeftOvers item n nf = { nf with LeftOvers = setItem item n nf.LeftOvers }
@@ -20,13 +20,13 @@ type NanoFactory =
         let toMakeTotal = n + (getItem item nf.ToMake)
 
         nf 
-        |> NanoFactory.SetLeftOvers item (if leftOvers >= toMakeTotal then leftOvers - toMakeTotal else 0)
-        |> NanoFactory.SetToMake item (if toMakeTotal >= leftOvers then toMakeTotal - leftOvers else 0)
+        |> NanoFactory.SetLeftOvers item (if leftOvers >= toMakeTotal then leftOvers - toMakeTotal else 0L)
+        |> NanoFactory.SetToMake item (if toMakeTotal >= leftOvers then toMakeTotal - leftOvers else 0L)
 
 
 let asChemical s =
     let number,name = splitBy " " (fun x -> x.[0],x.[1]) s
-    { Number = int number; Name = name }
+    { Number = int64 number; Name = name }
 
 let asFormula line =
     let l,r = splitBy " => " (fun x -> x.[0], x.[1]) line
@@ -34,7 +34,7 @@ let asFormula line =
     let inputs = splitBy ", " (Array.map asChemical) l
     output.Name,{ Inputs = inputs; Output = output}
 
-let ceilDiv a b = Math.Ceiling(float a / float b) |> int
+let ceilDiv a b = Math.Ceiling(float a / float b) |> int64
 
 let rec toOre nf = 
     let nextToMake = nf.ToMake |> Map.tryPick (fun k v -> if k <> "ORE" then Some (k,v) else None) 
@@ -45,10 +45,18 @@ let rec toOre nf =
 
         formula.Inputs
         |> Array.fold (fun s x -> NanoFactory.Make x.Name (formulasToMake * x.Number) s) nf
-        |> NanoFactory.SetToMake item 0
+        |> NanoFactory.SetToMake item 0L
         |> NanoFactory.SetLeftOvers item (formula.Output.Number * formulasToMake - amountToMake)
         |> toOre
-    | None -> nf.ToMake |> Map.find "ORE"
+    | None -> (nf.ToMake |> Map.find "ORE", nf)
+
+let rec produce max fuelToMake nf =
+    if fuelToMake = 0L then 0L 
+    else 
+        let oreRequired,newNf = NanoFactory.Make "FUEL" fuelToMake nf |> toOre
+        if oreRequired <= fuelToMake
+        then fuelToMake + produce max (fuelToMake / 2L) newNf
+        else produce max (fuelToMake / 2L) newNf
 
 [<Theory>]
 [<InlineData(82892753L, "../../../Data/14_test3.txt")>]
@@ -56,13 +64,13 @@ let rec toOre nf =
 [<InlineData(460664L, "../../../Data/14_test5.txt")>]
 [<InlineData(0L, "../../../Data/14.txt")>]
 let ``solve 2`` expected file =
-    let orePerFuel = 
+    let actual = 
         parseEachLine asFormula file
         |> Map.ofSeq
         |> NanoFactory.Create
-        |> NanoFactory.SetToMake "FUEL" 1
-        |> toOre
-    let actual = 1_000_000_000_000L / (orePerFuel |> int64)
+        |> produce 1_000_000_000_000L 1_000_000_000_000L
+
+    //let actual = 1_000_000_000_000L / (orePerFuel |> int64)
 
     Assert.Equal(expected, actual)
 
@@ -74,11 +82,11 @@ let ``solve 2`` expected file =
 [<InlineData(2210736, "../../../Data/14_test5.txt")>]
 [<InlineData(374457, "../../../Data/14.txt")>]
 let ``solve 1`` expected file =
-    let actual = 
+    let actual,nf = 
         parseEachLine asFormula file
         |> Map.ofSeq
         |> NanoFactory.Create
-        |> NanoFactory.SetToMake "FUEL" 1
+        |> NanoFactory.SetToMake "FUEL" 1L
         |> toOre
 
     Assert.Equal(expected, actual)
