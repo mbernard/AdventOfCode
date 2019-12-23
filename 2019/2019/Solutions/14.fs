@@ -50,27 +50,26 @@ let rec toOre nf =
         |> toOre
     | None -> (nf.ToMake |> Map.find "ORE", nf)
 
-let rec produce max fuelToMake nf =
-    if fuelToMake = 0L then 0L 
+let rec produce made max fuelToMake nf =
+    if fuelToMake = 0L then made
     else 
         let oreRequired,newNf = NanoFactory.Make "FUEL" fuelToMake nf |> toOre
-        if oreRequired <= fuelToMake
-        then fuelToMake + produce max (fuelToMake / 2L) newNf
-        else produce max (fuelToMake / 2L) newNf
+        if oreRequired <= max
+        then produce (made + fuelToMake) max fuelToMake newNf
+        else produce made max (fuelToMake / 2L) nf
 
 [<Theory>]
 [<InlineData(82892753L, "../../../Data/14_test3.txt")>]
 [<InlineData(5586022L, "../../../Data/14_test4.txt")>]
 [<InlineData(460664L, "../../../Data/14_test5.txt")>]
-[<InlineData(0L, "../../../Data/14.txt")>]
+[<InlineData(3568888L, "../../../Data/14.txt")>]
 let ``solve 2`` expected file =
     let actual = 
         parseEachLine asFormula file
         |> Map.ofSeq
         |> NanoFactory.Create
-        |> produce 1_000_000_000_000L 1_000_000_000_000L
+        |> produce 0L 1_000_000_000_000L 1_000_000_000_000L
 
-    //let actual = 1_000_000_000_000L / (orePerFuel |> int64)
 
     Assert.Equal(expected, actual)
 
