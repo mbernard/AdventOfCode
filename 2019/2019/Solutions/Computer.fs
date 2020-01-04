@@ -37,6 +37,9 @@ let initialize program =
     initialize64 (program |> Array.map int64)
 
 let writeInput x c = { c with Input = Queue.conj x c.Input}
+let writeInputArray x c = 
+    x |> 
+    Seq.fold (fun s y -> { s with Input = Queue.conj y s.Input}) c
 
 let parseMode =
     function

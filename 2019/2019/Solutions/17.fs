@@ -75,9 +75,9 @@ let toDirection =
     | _ -> invalidOp "toDirection"
 
 type Robot = 
-    { Position: int*int; Direction: Direction; Map: Map<int*int, char>; Path: int list}
-    static member addCharToPath c r = 
-        { r with Path = (c|>int)::r.Path }
+    { Position: int*int; Direction: Direction; Map: Map<int*int, char>; Path: string list}
+    static member addIntToPath i r = Robot.addToPath (string i) r
+    static member addToPath s r = { r with Path = (s)::r.Path }
         
 
 let initializeRobot m = 
@@ -100,7 +100,7 @@ let moveFoward robot =
         let nextPos = getNextPos r
         if tryGetItem nextPos r.Map = '#' 
         then moveFowardCount {r with Position = nextPos} (c+1)
-        else {r with Path = c::r.Path }
+        else Robot.addIntToPath c r
     moveFowardCount robot 0
 
 let turnRight = 
@@ -120,16 +120,16 @@ let turnLeft =
 let tryTurn d r = 
     let nextPos = getNextPos r
     if tryGetItem nextPos r.Map = '#'
-    then Robot.addCharToPath d r |> Some
+    then Robot.addToPath d r |> Some
     else None
 
 let tryTurnLeft r =
     {r with Direction = turnLeft r.Direction}
-    |> tryTurn 'L'
+    |> tryTurn "L"
 
 let tryTurnRight r =
     {r with Direction = turnRight r.Direction}
-    |> tryTurn 'R'
+    |> tryTurn "R"
 
 let rec getPathSegment r =
     match tryTurnLeft r with
@@ -145,22 +145,85 @@ let rec getPathSegment r =
             |> getPathSegment
         | None -> r
 
-type Instruction = { A: string; B: string; C: string; Main: string; Path: string}
+type Instruction = { A: int64[]; B: int64[]; C: int64[]; Main: int64[];}
 
-let rec findPattern s i =
-    let x,y = s |> Seq.splitAt i |>  (fun (a,b) -> charsToStr a, charsToStr b)
-    if y.Contains(x) 
+let containsSubArray xs sub = 
+    let subL = Array.length sub
+    let xsL = Array.length xs
+    let rec containsSubArray' i =
+        if i + subL > xsL then false
+        else
+            let s = Array.sub xs i subL
+            if s = sub then true
+            else containsSubArray' (i+1)
+
+    containsSubArray' 0
+
+let rec findPattern xs i =
+    let x,y = xs |> Array.splitAt i
+    if containsSubArray y x
     then x 
-    else findPattern s (i-1)
+    else findPattern xs (i-2)
 
+let replace xs pattern (letter:string) =
+    let pL = Array.length pattern
+    let xsL = Array.length xs
+    let rec replace' (a: string[]) i =
+        if i = -1 then a
+        elif a.[i.. i + pL-1] = pattern then
+            let b = 
+                seq {
+                    if i = 0 then [||] else a.[..i-1]
+                    [|letter|]
+                    a.[i + pL..]
+                    } |> Array.concat 
+                
+            replace' b (Array.length b - pL)
+        else replace' a (i-1)
+    replace' xs (xsL - pL)
 
-let buildInstruction ins =
-    let initialSplit = ins.Path |> String.length |> (/) 2
-    let a = findPattern ins.Path initialSplit
-    let restB = ins.Path.Replace(a,"A")
-    let b = findPattern restB initialSplit
-    let restC = restB.Replace(b,"B")
-    ()
+let buildPattern x letter max = 
+    let y = Array.filter (fun z -> z <> "A" && z <> "B") x
+    let pattern = findPattern y max
+    let main = replace x pattern  letter
+    pattern,main
+
+let toAscii (xs:string []) =
+    String.Join(",",xs).ToCharArray()
+    |> Array.map int64
+
+let buildInstruction path =
+    let a,mainA = buildPattern path "A" 6
+    let b,mainB = buildPattern mainA "B" 8
+    let c,mainC = buildPattern mainB "C" 8
+
+    { A = toAscii a; B = toAscii b; C = toAscii c; Main = toAscii mainC}
+
+let writeInstructions x c = 
+    c
+    |> Computer.writeInputArray x.Main
+    |> Computer.writeInput (int64 '\n')
+    |> Computer.writeInputArray x.A
+    |> Computer.writeInput (int64 '\n')
+    |> Computer.writeInputArray x.B
+    |> Computer.writeInput (int64 '\n')
+    |> Computer.writeInputArray x.C
+    |> Computer.writeInput (int64 '\n')
+    |> Computer.writeInput (int64 'n')
+    |> Computer.writeInput (int64 '\n')
+
+let run x =
+    let c =
+        parse
+        |> Array.setAt 0 2L
+        |> Computer.initialize64
+        |> writeInstructions x
+        |> Computer.executeUntilHalt
+    c.Output
+    |> Queue.toSeq
+    |> Seq.rev
+    |> Seq.head
+    
 
 [<Fact>]
 let ``solve 2`` () =
@@ -169,7 +232,11 @@ let ``solve 2`` () =
         |> toMap 
         |> initializeRobot 
         |> getPathSegment
-    { A = ""; B = ""; C = ""; Main = ""; Path = r.Path |> List.rev |> List.map char |> charsToStr }
-    |> buildInstruction
+    let res =
+        r.Path 
+        |> List.rev 
+        |> Array.ofList
+        |> buildInstruction
+        |> run
 
-    Assert.Equal(0,0)
+    Assert.Equal(880360L,res)
