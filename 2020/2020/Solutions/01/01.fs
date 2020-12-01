@@ -3,31 +3,59 @@
 open Common
 open Xunit
 
-let rec findRes i (xs: int []) =
+let rec getResult total i (xs: int []) =
+    if i >= Array.length xs then
+        None
+    else
+        xs
+        |> Array.tryFind (fun x -> x = total - xs.[i])
+        |> function
+        | None -> getResult total (i + 1) xs
+        | Some x -> (xs.[i], x) |> Some
+
+let rec getResult2 i (xs: int []) =
+    let rest = 2020 - xs.[i]
+
     xs
-    |> Array.tryFind (fun x -> x = 2020 - xs.[i])
+    |> getResult rest 0
     |> function
-    | None -> findRes (i + 1) xs
-    | Some x -> xs.[i] * x
+    | None -> getResult2 (i + 1) xs
+    | Some (x, y) -> xs.[i], x, y
 
 let solve1 x =
     x
     |> parseEachLine asInt
     |> Seq.toArray
-    |> findRes 0
+    |> getResult 2020 0
+    |> Option.get
+    |> fun (x, y) -> x * y
 
-//let solve2 =
-//    "data.txt"
-//    |> parseEachLine asInt
-//    |> Seq.map getFuel2
-//    |> Seq.reduce (+)
-//    |> printf "%i"
+let solve2 x =
+    x
+    |> parseEachLine asInt
+    |> Seq.toArray
+    |> getResult2 0
+    |> fun (x, y, z) -> x * y * z
+    
+[<Fact>]
+let ``Example 1 - solve 2`` () =
+    let res =
+        solve2 "../../../Solutions/01/data-test-1.txt"
+
+    Assert.Equal(241861950, res)
+
+[<Fact>]
+let ``Solve 2`` () =
+    let res = solve2 "../../../Solutions/01/data.txt"
+    Assert.Equal(165080960, res)
 
 [<Fact>]
 let ``Example 1`` () =
-    let res = solve1 "../../../Solutions/01/data-test-1.txt"
+    let res =
+        solve1 "../../../Solutions/01/data-test-1.txt"
+
     Assert.Equal(514579, res)
-    
+
 [<Fact>]
 let ``Solve 1`` () =
     let res = solve1 "../../../Solutions/01/data.txt"
