@@ -10,58 +10,13 @@
 
   <ItemGroup>
     <Compile Include="Common.fs" />
-    <Compile Include="Solutions\Computer.fs" />
-    <Compile Include="Solutions\17.fs" />
-    <Compile Include="Solutions\16.fs" />
-    <Compile Include="Solutions\15.fs" />
-    <Compile Include="Solutions\14.fs" />
-    <Compile Include="Solutions\13.fs" />
-    <Compile Include="Solutions\12.fs" />
-    <Compile Include="Solutions\11.fs" />
-    <Compile Include="Solutions\10.fs" />
-    <Compile Include="Solutions\09.fs" />
-    <Compile Include="Solutions\08.fs" />
-    <Compile Include="Solutions\01.fs" />
-    <Compile Include="Solutions\02.fs" />
-    <Compile Include="Solutions\03.fs" />
-    <Compile Include="Solutions\04.fs" />
-    <Compile Include="Solutions\05.fs" />
-    <Compile Include="Solutions\06.fs" />
-    <Compile Include="Solutions\07.fs" />
-    <Content Include="Data\17.txt" />
-    <Content Include="Data\15.txt" />
-    <Content Include="Data\14.txt" />
-    <Content Include="Data\14_test5.txt" />
-    <Content Include="Data\14_test4.txt" />
-    <Content Include="Data\14_test3.txt" />
-    <Content Include="Data\14_test2.txt" />
-    <Content Include="Data\14_test1.txt" />
-    <Content Include="Data\13.txt" />
-    <Content Include="Data\12_test2.txt" />
-    <Content Include="Data\12_test1.txt" />
-    <Content Include="Data\12.txt" />
-    <Content Include="Data\11.txt" />
-    <Content Include="Data\10_test6.txt" />
-    <Content Include="Data\10.txt" />
-    <Content Include="Data\10_test5.txt" />
-    <Content Include="Data\10_test4.txt" />
-    <Content Include="Data\10_test3.txt" />
-    <Content Include="Data\10_test2.txt" />
-    <Content Include="Data\10_test1.txt" />
-    <Content Include="Data\09.txt" />
-    <Content Include="Data\08.txt" />
-    <Content Include="Data\07.txt" />
-    <Content Include="Data\06.txt" />
-    <Content Include="Data\05.txt" />
-    <Content Include="Data\03_test3.txt" />
-    <Content Include="Data\03_test2.txt" />
-    <Content Include="Data\03_test1.txt" />
-    <Content Include="Data\03.txt" />
-    <Content Include="Data\02.txt" />
-    <Content Include="Data\01.txt" />
-    <Compile Include="Tests\Tests03.fs" />
-    <Compile Include="Tests\Tests01.fs" />
-    <Compile Include="Tests\Tests02.fs" />
+    <Content Include="Solutions\01\data.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Solutions\01\data-test-1.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Solutions\01\01.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
