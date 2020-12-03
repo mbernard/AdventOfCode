@@ -16,6 +16,7 @@ let parseEachLineIndexed f = File.ReadLines >> Seq.mapi f
 let asString : string -> string = id
 let asInt : string -> int = int
 let asStringArray : string [] -> string [] = Array.map string
+let asCharArray (x:string) = x.ToCharArray()
 let asIntArray : string [] -> int [] = Array.map int
 let asInt64Array : string [] -> int64 [] = Array.map int64
 let splitBy (c : string) f (str : string) = str.Split([| c |], StringSplitOptions.None) |> f
