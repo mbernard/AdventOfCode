@@ -24,6 +24,8 @@
     <Content Include="Solutions\03\data.txt" />
     <Content Include="Solutions\03\data-test-1.txt" />
     <Compile Include="Solutions\04\04.fs" />
+    <Content Include="Solutions\04\data-test-valid.txt" />
+    <Content Include="Solutions\04\data-test-invalid.txt" />
     <Content Include="Solutions\04\data.txt" />
     <Content Include="Solutions\04\data-test-1.txt" />
     <Compile Include="Program.fs" />
