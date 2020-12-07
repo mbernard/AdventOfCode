@@ -36,6 +36,7 @@
     <Compile Include="Solutions\07\07.fs" />
     <Content Include="Solutions\07\data.txt" />
     <Content Include="Solutions\07\data-test-1.txt" />
+    <Content Include="Solutions\07\data-test-2.txt" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

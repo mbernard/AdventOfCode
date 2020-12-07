@@ -29,11 +29,10 @@ let rec whoCanHold name (rules: seq<BagRule>) =
     let names =
         rules
         |> Seq.filter (fun y -> y.Bags |> Array.exists (fun (i, n) -> n = name))
-        |> Seq.map (fun x -> x.Name)
 
     let other =
         names
-        |> Seq.map (fun x -> whoCanHold x rules)
+        |> Seq.map (fun x -> whoCanHold x.Name rules)
         |> Seq.concat
 
     seq {
@@ -41,12 +40,47 @@ let rec whoCanHold name (rules: seq<BagRule>) =
         other
     }
     |> Seq.concat
+    
+let rec countBags name (rules: seq<BagRule>) =
+    rules
+    |> Seq.find (fun x -> x.Name = name)
+    |> (fun x -> x.Bags)
+    |> Array.map (fun (i,x) -> i + i * (countBags x rules))
+    |> Array.sum
 
+let solve2 data =
+    data
+    |> parseEachLine (withRegex @"^(.*)? bags contain (.*)\.$")
+    |> Seq.map parseLine
+    |> countBags "shiny gold"
+    
+[<Fact>]
+let ``Solve 2`` () =
+    let res = solve2 "../../../Solutions/07/data.txt"
+
+    Assert.Equal(39645, res)
+
+[<Fact>]
+let ``Solve 2 - example 1`` () =
+    let res =
+        solve2 "../../../Solutions/07/data-test-1.txt"
+
+    Assert.Equal(32, res)
+    
+[<Fact>]
+let ``Solve 2 - example 2`` () =
+    let res =
+        solve2 "../../../Solutions/07/data-test-2.txt"
+
+    Assert.Equal(126, res)
+    
+    
 let solve1 data =
     data
     |> parseEachLine (withRegex @"^(.*)? bags contain (.*)\.$")
     |> Seq.map parseLine
     |> whoCanHold "shiny gold"
+    |> Seq.map (fun x -> x.Name)
     |> Seq.distinct
     |> Seq.length
 
