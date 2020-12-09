@@ -15,6 +15,7 @@ let parseEachLineIndexed f = File.ReadLines >> Seq.mapi f
 
 let asString : string -> string = id
 let asInt : string -> int = int
+let asInt64 : string -> int64 = int64
 let asStringArray : string [] -> string [] = Array.map string
 let asCharArray (x:string) = x.ToCharArray()
 let asIntArray : string [] -> int [] = Array.map int
