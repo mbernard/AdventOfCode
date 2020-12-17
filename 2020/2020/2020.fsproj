@@ -68,6 +68,10 @@
     <Content Include="Solutions\16\data.txt" />
     <Content Include="Solutions\16\data-test-1.txt" />
     <Content Include="Solutions\16\data-test-2.txt" />
+    <Compile Include="Solutions\17\17.fs" />
+    <Compile Include="Solutions\17\17part2.fs" />
+    <Content Include="Solutions\17\data.txt" />
+    <Content Include="Solutions\17\data-test-1.txt" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
