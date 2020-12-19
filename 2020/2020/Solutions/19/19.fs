@@ -74,3 +74,28 @@ let ``Solve 1 - example 1`` () =
         solve1 "../../../Solutions/19/data-test-1.txt"
 
     Assert.Equal(2, res)
+    
+let fixRules data =
+    
+    let r =
+        data.Rules
+        |> Map.add 8 "42 | 42 8"
+        |> Map.add 11 "42 31 | 42 11 31"
+    {data with Rules = r } 
+    
+let solveRule2 data =
+    data,$@"^({solveRule 42 data |> snd})+(?<open>{solveRule 42  data |> snd})+(?<close-open>{solveRule 31 data |> snd})+(?(open)(?!))$"
+    
+let solve2 data =
+    data
+    |> parseEachLine asString
+    |> Seq.toList
+    |> parse { Rules = Map.empty; Messages = [] }
+    |> solveRule2
+    |> howManyMatches
+
+
+[<Fact>]
+let ``Solve 2`` () =
+    let res = solve2 "../../../Solutions/19/data.txt"
+    Assert.Equal(0, res)
