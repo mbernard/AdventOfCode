@@ -81,6 +81,11 @@ let rec solveParenthesis computer =
     let op = computer.Operators.Pop()
 
     if op = '(' then
+        if computer.Operators.Count > 0 then
+            let op2 = computer.Operators.Pop()
+            if op2 = '+' then computer.Operands.Pop() + computer.Operands.Pop() |> computer.Operands.Push
+            else computer.Operators.Push(op2)
+        
         computer
     else
         let r =
@@ -149,15 +154,12 @@ let solve2 data =
     |> List.map (fun x ->
         let y = x.Operands.Pop()
         if x.Operands.Count = 0 then y else failwith "boom")
-//    |> (fun x ->
-//        File.WriteAllLines("./res.txt",x |> List.map string)
-//        x)
     |> List.sum
 
 [<Fact>]
 let ``Solve 2`` () =
     let res = solve2 "../../../Solutions/18/data.txt"
-    Assert.Equal(0L, res)
+    Assert.Equal(171259538712010L, res)
 
 [<Theory>]
 [<InlineData(46L, "2 * 3 + (4 * 5)")>]
@@ -172,7 +174,7 @@ let ``Solve 2 - example 1`` expected input =
         |> asCharArray
         |> Array.fold
             solveExpression2
-               { OriginalString = ""
+               { OriginalString = input
                  Operators = new Stack<char>()
                  Operands = new Stack<int64>() }
         |> go
