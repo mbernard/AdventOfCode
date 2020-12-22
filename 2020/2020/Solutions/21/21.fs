@@ -95,3 +95,39 @@ let ``Solve 1 - example 1`` () =
         solve1 "../../../Solutions/21/data-test-1.txt"
 
     Assert.Equal(5, res)
+
+let matchAllergens2 foods =
+    let allAllergens =
+        foods
+        |> List.collect (fun x -> x.Allergens)
+        |> List.distinct
+
+    allAllergens
+    |> List.map (findIngredients foods)
+    |> Map.ofList
+    |> matchIngredientsAndAllergens
+    |> Map.map (fun k v -> v |> List.exactlyOne)
+    |> Map.toList
+    |> List.sortBy fst
+    |> List.map snd
+    |> List.toArray
+    |> (fun x -> String.Join(',', x))
+
+let solve2 data =
+    data
+    |> parseEachLine asString
+    |> Seq.toList
+    |> List.map parseFood
+    |> matchAllergens2
+
+[<Fact>]
+let ``Solve 2`` () =
+    let res = solve2 "../../../Solutions/21/data.txt"
+    Assert.Equal("vfvvnm,bvgm,rdksxt,xknb,hxntcz,bktzrz,srzqtccv,gbtmdb", res)
+
+[<Fact>]
+let ``Solve 2 - example 1`` () =
+    let res =
+        solve2 "../../../Solutions/21/data-test-1.txt"
+
+    Assert.Equal("mxmxvkd,sqjhc,fvjkl", res)
