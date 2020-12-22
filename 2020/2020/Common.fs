@@ -24,3 +24,12 @@ let splitBy (c : string) f (str : string) = str.Split([| c |], StringSplitOption
 let extractInts str = [| for m in Regex.Matches(str, "(-?\d+)") -> int m.Value |]
 let withRegex regex str = [| for m in Regex.Match(str, regex).Groups -> m.Value|] |> Array.tail
 let charsToStr (chars : char seq) = chars |> Seq.map string |> String.concat ""
+let inline debug x =
+#if DEBUG
+    if System.Console.CapsLock then
+        printfn "%A" x
+        // obviously, it must not be necessarily printf;
+        // it can be System.Diagnostics.Debug.WriteLine()
+        // or any other logger tool that exists in the project.
+#endif
+    x

@@ -77,6 +77,12 @@
     <Compile Include="Solutions\19\19.fs" />
     <Content Include="Solutions\19\data.txt" />
     <Content Include="Solutions\19\data-test-1.txt" />
+    <Compile Include="Solutions\20\20.fs" />
+    <Content Include="Solutions\20\data.txt" />
+    <Content Include="Solutions\20\data-test-1.txt" />
+    <Compile Include="Solutions\21\21.fs" />
+    <Content Include="Solutions\21\data.txt" />
+    <Content Include="Solutions\21\data-test-1.txt" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
