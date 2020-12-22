@@ -25,19 +25,17 @@ let score deck =
     |> fst
 
 let parseDecks lines =
-    lines
-    |> List.splitInto 2
-    |> List.map parseDeck
-    |> play
-    |> List.filter (fun d -> d <> List.Empty)
-    |> List.exactlyOne
-    |> score
+    lines |> List.splitInto 2 |> List.map parseDeck
 
 let solve1 data =
     data
     |> parseEachLine asString
     |> Seq.toList
     |> parseDecks
+    |> play
+    |> List.filter (fun d -> d <> List.Empty)
+    |> List.exactlyOne
+    |> score
 
 [<Fact>]
 let ``Solve 1`` () =
@@ -50,3 +48,53 @@ let ``Solve 1 - example 1`` () =
         solve1 "../../../Solutions/22/data-test-1.txt"
 
     Assert.Equal(306, res)
+
+let rec play2 gameHistory1 gameHistory2 (decks: int list list) =
+    let deck1 = List.item 0 decks
+    let deck2 = List.item 1 decks
+
+    if gameHistory1 |> List.contains deck1
+       || gameHistory2 |> List.contains deck2 then
+        [ deck1; [] ]
+    else
+        let x :: xs = deck1
+        let y :: ys = deck2
+
+        let isPlayerOneWinner =
+            if xs <> List.Empty
+               && ys <> List.Empty
+               && (x = List.length xs || y = List.length ys) then
+                play2 [] [] [ xs; ys ]
+                |> List.item 1
+                |> (=) List.Empty
+            else
+                x > y
+
+        let newDecks =
+            if isPlayerOneWinner then [ xs @ [ x; y ]; ys ] else [ xs; ys @ [ y; x ] ]
+
+        if xs = List.Empty || ys = List.Empty
+        then newDecks
+        else play2 (deck1 :: gameHistory1) (deck2 :: gameHistory2) newDecks
+
+let solve2 data =
+    data
+    |> parseEachLine asString
+    |> Seq.toList
+    |> parseDecks
+    |> play2 [] []
+    |> List.filter (fun d -> d <> List.Empty)
+    |> List.exactlyOne
+    |> score
+
+[<Fact>]
+let ``Solve 2`` () =
+    let res = solve2 "../../../Solutions/22/data.txt"
+    Assert.Equal(0, res)
+
+[<Fact>]
+let ``Solve 2 - example 1`` () =
+    let res =
+        solve2 "../../../Solutions/22/data-test-1.txt"
+
+    Assert.Equal(291, res)
