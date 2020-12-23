@@ -53,8 +53,8 @@ let rec play2 gameHistory1 gameHistory2 (decks: int list list) =
     let deck1 = List.item 0 decks
     let deck2 = List.item 1 decks
 
-    if gameHistory1 |> List.contains deck1
-       || gameHistory2 |> List.contains deck2 then
+    if  List.contains deck1 gameHistory1
+       || List.contains deck2 gameHistory2 then
         [ deck1; [] ]
     else
         let x :: xs = deck1
@@ -71,7 +71,7 @@ let rec play2 gameHistory1 gameHistory2 (decks: int list list) =
         let newDecks =
             if isPlayerOneWinner then [ xs @ [ x; y ]; ys ] else [ xs; ys @ [ y; x ] ]
 
-        if xs = List.Empty || ys = List.Empty
+        if newDecks |> List.contains List.Empty
         then newDecks
         else play2 (deck1 :: gameHistory1) (deck2 :: gameHistory2) newDecks
 
@@ -88,8 +88,8 @@ let solve2 data =
 [<Fact>]
 let ``Solve 2`` () =
     let res = solve2 "../../../Solutions/22/data.txt"
-    Assert.Equal(0, res)
-// too high 34588
+    Assert.Equal(31962, res)
+// 31962
 
 [<Fact>]
 let ``Solve 2 - example 1`` () =
