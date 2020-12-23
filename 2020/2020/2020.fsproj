@@ -86,6 +86,7 @@
     <Compile Include="Solutions\22\22.fs" />
     <Content Include="Solutions\22\data.txt" />
     <Content Include="Solutions\22\data-test-1.txt" />
+    <Content Include="Solutions\22\data-test-2.txt" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

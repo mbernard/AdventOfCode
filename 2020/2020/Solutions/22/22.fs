@@ -61,10 +61,8 @@ let rec play2 gameHistory1 gameHistory2 (decks: int list list) =
         let y :: ys = deck2
 
         let isPlayerOneWinner =
-            if xs <> List.Empty
-               && ys <> List.Empty
-               && (x = List.length xs || y = List.length ys) then
-                play2 [] [] [ xs; ys ]
+            if x <= List.length xs && y <= List.length ys then
+                play2 [] [] [ xs |> List.take x; ys |> List.take y ]
                 |> List.item 1
                 |> (=) List.Empty
             else
@@ -91,6 +89,7 @@ let solve2 data =
 let ``Solve 2`` () =
     let res = solve2 "../../../Solutions/22/data.txt"
     Assert.Equal(0, res)
+// too high 34588
 
 [<Fact>]
 let ``Solve 2 - example 1`` () =
@@ -98,3 +97,10 @@ let ``Solve 2 - example 1`` () =
         solve2 "../../../Solutions/22/data-test-1.txt"
 
     Assert.Equal(291, res)
+    
+[<Fact>]
+let ``Solve 2 - infinite loop prevention`` () =
+    let res =
+        solve2 "../../../Solutions/22/data-test-2.txt"
+
+    Assert.Equal(105, res)
