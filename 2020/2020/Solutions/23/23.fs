@@ -54,3 +54,23 @@ let solve1 moves input =
 let ``Solve 1`` expected moves input =
     let res = solve1 moves input
     Assert.Equal(expected, res)
+
+let generate xs = xs @ [ 10 .. 1_000_000 ]
+
+let score2 xs =
+    let i = xs |> List.findIndex (fun x -> x = 1)
+    let _, one :: x :: y :: right = xs |> List.splitAt i
+    (int64 x) * (int64 y)
+
+let solve2 moves input =
+    let game = input |> parse |> generate
+
+    let t = [ 1 .. moves ] |> List.fold play game
+    t |> score2
+
+[<Theory>]
+[<InlineData(149245887792L, 10_000_000, "389125467")>]
+[<InlineData(0L, 10_000_000, "398254716")>]
+let ``Solve 2`` expected moves input =
+    let res = solve2 moves input
+    Assert.Equal(expected, res)
