@@ -91,6 +91,7 @@
     <Compile Include="Solutions\24\24.fs" />
     <Content Include="Solutions\24\data.txt" />
     <Content Include="Solutions\24\data-test-1.txt" />
+    <Compile Include="Solutions\25\25.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
