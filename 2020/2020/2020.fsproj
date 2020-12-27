@@ -79,6 +79,7 @@
     <Content Include="Solutions\19\data-test-1.txt" />
     <Compile Include="Solutions\20\20.fs" />
     <Content Include="Solutions\20\data.txt" />
+    <Content Include="Solutions\20\monster.txt" />
     <Content Include="Solutions\20\data-test-1.txt" />
     <Compile Include="Solutions\21\21.fs" />
     <Content Include="Solutions\21\data.txt" />
