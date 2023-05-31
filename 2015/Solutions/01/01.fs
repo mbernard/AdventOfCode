@@ -1,4 +1,4 @@
-module _2015
+module day01
 
 open System
 open Xunit
