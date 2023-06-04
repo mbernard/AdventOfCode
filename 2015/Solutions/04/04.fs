@@ -34,7 +34,7 @@ let solve1 (expected:int) (key:string) =
     |> should equal expected
 
 [<Theory>]
-[<InlineData(0, "ckczppom")>]
+[<InlineData(3938038, "ckczppom")>]
 let solve2 (expected:int) (key:string) =
     { 0 .. Int32.MaxValue }
     |> Seq.find (doesMD5hashStartsWithSixZeros key)
