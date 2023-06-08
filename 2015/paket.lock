@@ -3,6 +3,17 @@ RESTRICTION: || (== net5.0) (== netstandard2.0) (== netstandard2.1)
 NUGET
   remote: https://api.nuget.org/v3/index.json
     FSharp.Core (7.0.200)
+    FSPowerPack.Community (3.0)
+      FSPowerPack.Linq.Community
+      FSPowerPack.Metadata.Community
+      FSPowerPack.Parallel.Seq.Community
+    FSPowerPack.Core.Community (3.0)
+    FSPowerPack.Linq.Community (3.0)
+      FSPowerPack.Core.Community
+    FSPowerPack.Metadata.Community (3.0)
+      FSPowerPack.Core.Community
+    FSPowerPack.Parallel.Seq.Community (3.0)
+      FSPowerPack.Core.Community
     FsUnit (5.3)
       FSharp.Core (>= 6.0.7)
       NUnit (>= 3.13.3 < 3.14)
