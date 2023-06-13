@@ -17,29 +17,6 @@ type Value =
     | Instruction of Operation
     | Result of uint16
 
-// let parseInstruction (xs: string array) =
-//     match xs[0] with
-//     | Regex "^(\d+)$" [ x ] -> Set(uint16 x)
-//     | Regex "NOT (.*)" [ x ] -> Not x
-//     | Regex "(.*) OR (.*)" [ x; y ] -> Or(x, y)
-//     | Regex "(.*) AND (.*)" [ x; y ] -> And(x, y)
-//     | Regex "(.*) LSHIFT (\d+)" [ x; i ] -> LShift(x, int i)
-//     | Regex "(.*) RSHIFT (\d+)" [ x; i ] -> RShift(x, int i)
-//     | _ -> failwith "Unknow operator"
-//     |> fun op -> { Operation = op; Output = xs[1] }
-
-// let rec execute (map: Map<string, uint16>) x =
-//     let value =
-//         match x.Operation with
-//         | Not y -> ~~~map[y]
-//         | Or (y, z) -> map[y] ||| map[z]
-//         | Set (y) -> y
-//         | And (y, z) -> map[y] &&& map[z]
-//         | LShift (y, z) -> map[y] <<< z
-//         | RShift (y, z) -> map[y] >>> z
-
-//     Map.add x.Output value map
-
 let rec solve (key:string) (map: Map<string,Value>) =
     if UInt16.TryParse key |> fst then uint16 key,map
     else
