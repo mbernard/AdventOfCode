@@ -42,7 +42,10 @@ let (|Regex|_|) pattern input =
 let charsToStr (chars: char seq) =
     chars |> Seq.map string |> String.concat ""
 
-let inline debug x =
+let debug x =
+    x
+
+let inline log x =
 #if DEBUG
     if System.Console.CapsLock then
         printfn "%A" x

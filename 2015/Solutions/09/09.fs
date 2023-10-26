@@ -5,79 +5,113 @@ open Xunit
 open Common
 open FsUnit
 
-type Route = string * int
+type Region = {
+    citySet : Set<string>
+    routes : Map<string, Map<string,int>>
+}
 
-type Graph =
-    { graph: Map<string, Route seq>
-      cities: Set<string> }
+type Route = {
+    cost : int
+    path : string list
+}
 
-type dfsState =
-    { graph: Graph
-      visited: Set<string>
-      distance: int
-      best: int }
+let getNonVisitedNeighbors region visited currentCity =
+    region.routes[currentCity]
+    |> Map.filter (fun k _ -> visited |> List.contains k |> not)
 
-let buildGraph (s: Graph) (x: string * string array seq) =
-    let fromCity = fst x
-    let routes = x |> snd |> Seq.map (fun y -> y[1], int y[2])
+let findShortestPath region =
+    let cityCount = region.citySet |> Set.count
+    let getNonVisitedNeighbors = getNonVisitedNeighbors region
 
-    { graph = s.graph |> Map.add fromCity routes
-      cities =
-        s.cities
-        |> Set.add fromCity
-        |> Set.union (routes |> Seq.map fst |> Set.ofSeq) }
+    let rec findShortestPathRec currentCity cost (path : string list) =
+        if path |> List.length = cityCount then
+            // possible solution
+            Some {cost = cost; path = path}
+        else
+            getNonVisitedNeighbors path currentCity
+            |> Map.fold (fun bestRoute k v -> 
+                match findShortestPathRec k ( cost + v) (k :: path) with
+                | Some x -> if bestRoute |> Option.isNone || x.cost < bestRoute.Value.cost then Some x else bestRoute
+                | None -> bestRoute
+                ) None
+    
+    region.citySet
+    |> Set.fold (fun bestRoute city -> 
+        match findShortestPathRec city 0 [city] with
+        | Some x -> if bestRoute |> Option.isNone || x.cost < bestRoute.Value.cost then Some x else bestRoute
+        | None -> bestRoute
+    ) None    
+    |> Option.get  
 
-let rec dfs (s: dfsState) ((city, d): Route) =
-    let newVisited = s.visited |> Set.add city
-    let newDistance = s.distance + d
+let findLongestPath region =
+    let cityCount = region.citySet |> Set.count
+    let getNonVisitedNeighbors = getNonVisitedNeighbors region
 
-    if s.visited |> Set.contains city then
-        // city already visited
-        s
-    elif s.best < newDistance then
-        // worst then current best
-        s
-    elif  s.graph.cities = newVisited then
-        // is a valid solution
-        // visited all city once
-        { s with best = newDistance }
-    else
-        // visit each neighbor
-        s.graph.graph
-        |> Map.tryFind city
-        |> Option.map (fun x ->
-            x
-            |> Seq.map (
-                dfs
-                    { s with
-                        visited = newVisited
-                        distance = newDistance }
-            )
-            |> Seq.minBy (fun y -> y.best)
-            |> (fun x -> if x.best < s.best then {s with best = x.best } else s))
-        |> Option.defaultValue s
+    let rec findLongestPathRec currentCity cost (path : string list) =
+        if path |> List.length = cityCount then
+            // possible solution
+            Some {cost = cost; path = path}
+        else
+            getNonVisitedNeighbors path currentCity
+            |> Map.fold (fun bestRoute k v -> 
+                match findLongestPathRec k ( cost + v) (k :: path) with
+                | Some x -> if bestRoute |> Option.isNone || x.cost > bestRoute.Value.cost then Some x else bestRoute
+                | None -> bestRoute
+                ) None
+    
+    region.citySet
+    |> Set.fold (fun bestRoute city -> 
+        match findLongestPathRec city 0 [city] with
+        | Some x -> if bestRoute |> Option.isNone || x.cost > bestRoute.Value.cost then Some x else bestRoute
+        | None -> bestRoute
+    ) None    
+    |> Option.get    
+      
+let addRoute region (xs : string array) =
+    let s,d,x = xs[0], xs[1], int xs[2]
+    let cs = 
+        region.citySet 
+        |> Set.add s
+        |> Set.add d
 
-let findShortestPath (g: Graph) =
-    g.cities
-    |> Seq.map (fun x -> Route(x, 0))
-    |> Seq.map (fun x ->
-        dfs
-            { graph = g
-              visited = Set.empty
-              distance = 0
-              best = Int32.MaxValue }
-            x)
-    |> Seq.map (fun x -> x.best)
-    |> Seq.min
+    let rs = 
+        region.routes
+        |> Map.add s
+            (region.routes 
+            |> Map.tryFind s
+            |> Option.defaultValue Map.empty
+            |> Map.add d (int x))
+        |> Map.add d
+            (region.routes
+            |> Map.tryFind d
+            |> Option.defaultValue Map.empty
+            |> Map.add s (int x))
 
-[<Fact>]
-let solve1 () =
-    "../../../Solutions/09/data.txt"
+    {citySet = cs; routes = rs}
+
+let parseRegion (xs : string array seq) =
+    xs 
+    |> Seq.fold addRoute { citySet = Set.empty; routes = Map.empty }
+   
+
+[<Theory>]
+[<InlineDataAttribute(605, "../../../Solutions/09/data_test.txt")>]
+[<InlineDataAttribute(207, "../../../Solutions/09/data.txt")>]
+let solve1 (expected, path) =
+    path
     |> parseEachLine (withRegex "(.*) to (.*) = (\d+)")
-    |> Seq.groupBy (fun x -> x[0])
-    |> Seq.fold
-        buildGraph
-        { graph = Map.empty
-          cities = Set.empty }
+    |> parseRegion
     |> findShortestPath
-    |> should equal 0
+    |> (fun r -> r.cost)
+    |> should equal expected
+
+[<Theory>]
+[<InlineDataAttribute(982, "../../../Solutions/09/data_test.txt")>]
+[<InlineDataAttribute(0, "../../../Solutions/09/data.txt")>]
+let solve2 (expected, path) =
+    path
+    |> parseEachLine (withRegex "(.*) to (.*) = (\d+)")
+    |> parseRegion
+    |> findLongestPath
+    |> (fun r -> r.cost)
+    |> should equal expected
