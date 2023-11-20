@@ -107,7 +107,7 @@ let solve1 (expected, path) =
 
 [<Theory>]
 [<InlineDataAttribute(982, "../../../Solutions/09/data_test.txt")>]
-[<InlineDataAttribute(0, "../../../Solutions/09/data.txt")>]
+[<InlineDataAttribute(804, "../../../Solutions/09/data.txt")>]
 let solve2 (expected, path) =
     path
     |> parseEachLine (withRegex "(.*) to (.*) = (\d+)")

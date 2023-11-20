@@ -3,6 +3,7 @@
 open System.IO
 open System
 open System.Text.RegularExpressions
+open System.Diagnostics
 
 // helper methods for parsing
 let parseFirstLine f (fileName: string) =
@@ -43,6 +44,7 @@ let charsToStr (chars: char seq) =
     chars |> Seq.map string |> String.concat ""
 
 let debug x =
+    Debugger.Break()
     x
 
 let inline log x =
