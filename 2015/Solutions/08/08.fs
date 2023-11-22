@@ -20,6 +20,7 @@ let countCodeChar (xs:char array) =
                 | 'x' ->
                     count <- count + 3
                     i <- i + 3
+                | _ -> failwith "error"
         i <- i + 1
     count
 

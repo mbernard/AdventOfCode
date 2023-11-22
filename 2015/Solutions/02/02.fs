@@ -20,7 +20,7 @@ let measureExtraPaper sides =
 let measurePaper sides =
     sides
     |> Array.pairwise
-    |> Array.insertAt 0 (sides[0], sides[2])
+    |> Array.append [|(sides[0], sides[2])|]
     |> Array.map measureSide
     |> Array.sum
     |> (*) 2
