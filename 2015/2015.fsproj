@@ -20,6 +20,7 @@
     <Compile Include="Solutions\09\09.fs" />
     <Compile Include="Solutions\10\10.fs" />
     <Compile Include="Solutions\11\11.fs" />
+    <Compile Include="Solutions\12\12.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
