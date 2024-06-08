@@ -49,8 +49,8 @@ let debug x =
 
 let inline log x =
 #if DEBUG
-    if System.Console.CapsLock then
-        printfn "%A" x
+    //if System.Console.CapsLock then
+    printfn "%A" x
     // obviously, it must not be necessarily printf;
     // it can be System.Diagnostics.Debug.WriteLine()
     // or any other logger tool that exists in the project.
