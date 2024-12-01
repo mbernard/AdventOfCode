@@ -23,6 +23,7 @@
     <Compile Include="Solutions\12\12.fs" />
     <Compile Include="Solutions\13\13.fs" />
     <Compile Include="Solutions\14\14.fs" />
+    <Compile Include="Solutions\15\15.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
