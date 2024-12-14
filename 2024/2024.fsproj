@@ -13,6 +13,8 @@
     <Compile Include="Common.fs" />
     <Compile Include="Solutions\01\01.fs" />
     <Content Include="Solutions\01\data.txt" />
+    <Compile Include="Solutions\02\02.fs" />
+    <Content Include="Solutions\02\data.txt" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
