@@ -15,10 +15,10 @@
     <Content Include="Solutions\01\data.txt" />
     <Compile Include="Solutions\02\02.fs" />
     <Content Include="Solutions\02\data.txt" />
+    <Compile Include="Solutions\03\03.fs" />
+    <Content Include="Solutions\03\data.txt" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-
-  <ItemGroup />
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.2">
